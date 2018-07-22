@@ -1,0 +1,43 @@
+---
+
+- name: install jenkins master
+  yum:
+    name: jenkins
+    state: present
+
+# Due to noexec on /var, the jenkins workdir&jobs needs to be moved
+- name: create jenkins workspace in /opt
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: 0755
+  with_items:
+    - "/opt/jenkins-data/workspace"
+    - "/opt/jenkins-data/jobs"
+
+- name: symlink workspace
+  file:
+    src: /opt/jenkins-data/workspace
+    dest: /var/lib/jenkins/workspace
+    owner: jenkins
+    group: jenkins
+    state: link
+
+- name: symlink jobs
+  file:
+    src: /opt/jenkins-data/jobs
+    dest: /var/lib/jenkins/jobs
+    owner: jenkins
+    group: jenkins
+    state: link
+
+- name: copy jenkins config
+  template:
+    src: jenkins.j2
+    dest: /etc/sysconfig/jenkins
+    owner: root
+    group: root
+    mode: 0600
+  notify: restart_jenkins  

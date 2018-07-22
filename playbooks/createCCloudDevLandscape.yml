@@ -1,0 +1,204 @@
+---
+
+- hosts: localhost
+  connection: local
+  vars_prompt:
+    - name: "os_password"
+      prompt: "Enter password"
+      private: true
+  vars:
+    os_auth_url: https://identity-3.eu-nl-1.cloud.sap:443/v3
+    os_project_domain_name: monsoon3
+    os_project_name: hybris Cloud Services Engineering
+    os_region_name: eu-nl-1
+    os_user_domain_name: monsoon3
+    os_username: "{{lookup('env','USER')}}"
+    auth_obj:
+      auth_url: "{{os_auth_url}}"
+      user_domain_name: "{{os_user_domain_name}}"
+      username: "{{os_username}}"
+      password: "{{os_password}}"
+      project_domain_name: "{{os_project_domain_name}}"
+      project_name: "{{os_project_name}}"
+    dc_code: nl1
+    cleanup_flag: daily
+    zone_code: d
+    cmz_id: 1
+    network_name: hcs_eng_private
+    keypair_name: hcs_jenkins
+    image: CentOS-7-Standard
+    mz_servers:
+    - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-por{{zone_code}}-001
+      hostname: "{{dc_code}}-cmz-por{{zone_code}}-001"
+      flavor: m1.medium
+      security_group: default
+      groups: "Portal,Cmdb,Web,CCloud"
+    - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-rdk{{zone_code}}-001
+      hostname: "{{dc_code}}-cmz-rdk{{zone_code}}-001"
+      flavor: m1.medium
+      security_group: default
+      groups: "Rundeck,CCloud"
+    - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-ytr{{zone_code}}-001
+      hostname: "{{dc_code}}-cmz-ytr{{zone_code}}-001"
+      flavor: m1.medium
+      security_group: default
+      groups: "yTestRunner,CCloud"
+    - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-repo{{zone_code}}-001
+      hostname: "{{dc_code}}-cmz-repo{{zone_code}}-001"
+      flavor: m1.medium
+      security_group: default
+      groups: "Repo,CCloud"
+#  - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-ctrl{{zone_code}}-001
+#    hostname: "{{dc_code}}-cmz-ctrl{{zone_code}}-001"
+#    flavor: m1.medium
+#    security_group: default
+#  - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-web{{zone_code}}-001
+#    hostname: "{{dc_code}}-cmz-web{{zone_code}}-001"
+#    flavor: m1.medium
+#    security_group: default
+#  - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-cmdb{{zone_code}}-001
+#    hostname: "{{dc_code}}-cmz-cmdb{{zone_code}}-001"
+#    flavor: m1.medium
+#    security_group: default
+#  - name: CMZ{{cmz_id}}-{{dc_code}}-cmz-rdkdb{{zone_code}}-001
+#    hostname: "{{dc_code}}-cmz-rdkdb{{zone_code}}-001"
+#    flavor: m1.medium
+#    security_group: default
+
+  tasks:
+  - name: Get details of existing CMZ VMs
+    os_server_facts:
+      auth: "{{auth_obj}}"
+      region_name: "{{os_region_name}}"
+      wait: true
+      server: "CMZ*"
+    register: server_list
+
+  - block:
+    - name: Initialize the list of CMZ ids
+      set_fact:
+        existing_cmz_ids: []
+
+    - name: Get the existing CMZ ids
+      set_fact:
+        existing_cmz_ids: "{{existing_cmz_ids}} + {{item.name | regex_search('CMZ(\\d+)-','\\1')}}"
+      with_items: "{{server_list.ansible_facts.openstack_servers}}"
+
+    - name: Filter the CMZ ids
+      set_fact:
+        existing_cmz_ids: "{{existing_cmz_ids | unique}}"
+
+    - name: Create sequence of ids we could use
+      shell: echo "dummy command"
+      with_sequence: start=1 end=10
+      register: id_seq_create
+
+    - name: Set the cmz_id as the first free one
+      set_fact:
+        cmz_id: "{{id_seq_create.results | map(attribute='item') | list | difference(existing_cmz_ids) | first}}"
+
+    when: server_list.ansible_facts.openstack_servers | length > 0
+
+  - name: Write the cmz_id to file
+    shell: echo "{{cmz_id}}" > {{cmz_id_file}}
+    when: cmz_id_file is defined
+
+  - name: Show the cmz_id being used
+    debug:
+      msg: "cmz_id = {{cmz_id}}"
+
+  - name: Request creation of VMs
+    os_server:
+      state: present
+      auth: "{{auth_obj}}"
+      region_name: "{{os_region_name}}"
+      name: "{{item.name}}"
+      image: "{{image}}"
+      key_name: "{{keypair_name}}"
+      flavor: "{{item.flavor}}"
+      network: "{{network_name}}"
+      meta:
+        hostname: "{{item.hostname}}"
+        cleanup: "{{cleanup_flag}}"
+        creator: "{{os_username}}"
+      wait: false
+    with_items: "{{mz_servers}}"
+    register: servers
+
+  - name: Wait for the VMs to be created
+    os_server_facts:
+      auth: "{{auth_obj}}"
+      region_name: "{{os_region_name}}"
+      server: "{{item.id}}"
+      wait: true
+    register: server_state
+    retries: 20
+    delay: 60
+    until: server_state.ansible_facts.openstack_servers[0].status in ["ACTIVE", "ERROR"]
+    failed_when: server_state.ansible_facts.openstack_servers[0].status == "ERROR"
+    with_items: "{{servers.results}}"
+
+  - name: Assign floating IP addresses to VMs
+    os_floating_ip:
+      auth: "{{auth_obj}}"
+      region_name: "{{os_region_name}}"
+      state: present
+      server: "{{item.id}}"
+      reuse: true
+      wait: true
+    with_items: "{{servers.results}}"
+    register: ip_addresses
+
+  - name: Wait for ssh agent to be up on each VM
+    wait_for:
+      host: "{{item.floating_ip.floating_ip_address}}"
+      port: 22
+      sleep: 10
+      timeout: 180
+    with_items: "{{ip_addresses.results}}"
+
+  - name: Add the VMs to the inventory
+    add_host:
+      name: "{{item.1.floating_ip.floating_ip_address}}"
+      groups: "{{item.0.groups}}"
+      ansible_ssh_user: centos
+    with_together:
+      - "{{mz_servers}}"
+      - "{{ip_addresses.results}}"
+
+- hosts: "CCloud"
+  tasks:
+  - name: Wait for cloud-init to finish
+    wait_for:
+      path: /var/lib/cloud/instance/boot-finished
+      sleep: 30
+      timeout: 300
+
+  - name: Read the cloud-init result file
+    slurp:
+      src: /var/lib/cloud/data/result.json
+    register: cloud_init_results
+
+  - name: Base64 decode the results
+    set_fact:
+      cloud_init_results: "{{cloud_init_results['content'] | b64decode}}"
+
+  - name: Remove ignored errors
+    set_fact:
+      cloud_init_errors: "{{cloud_init_results.v1.errors | reject('search','keys-to-console') | list | reject('search','ssh-authkey-fingerprints') | list}}"
+    when: "'errors' in cloud_init_results.v1 and cloud_init_results.v1.errors|length > 0"
+
+  - debug: var=cloud_init_errors
+
+  - name: Fail if there are cloud-init errors
+    fail:
+      msg: "cloud-init failed"
+    when: "cloud_init_errors is defined and cloud_init_errors | length > 0"
+
+- include: CmdbServer.yml
+
+- include: PortalServer.yml
+
+- include: WebServer.yml
+
+- include: ytr.yml

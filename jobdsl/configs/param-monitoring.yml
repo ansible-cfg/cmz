@@ -1,0 +1,4 @@
+---
+
+project: Monitoring-Config
+playbook: playbooks/playbook.yml

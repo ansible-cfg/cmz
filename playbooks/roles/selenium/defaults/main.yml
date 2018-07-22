@@ -1,0 +1,25 @@
+---
+# package declarations for this role
+yum_packages:
+  - bzip2
+  - xorg-x11-server-Xorg
+  - xorg-x11-server-Xvfb
+  - gtk3
+  - alsa-lib
+  - liberation-fonts-common
+  - liberation-sans-fonts
+
+selenium_version: "2.53"
+selenium_minor_version: "1"
+selenium_jar_file: "selenium-server-standalone-{{selenium_version}}.{{selenium_minor_version}}.jar"
+selenium_download_url: "http://{{repo_server}}/selenium/{{selenium_jar_file}}"
+selenium_base_dir: "/opt/selenium_server"
+selenium_user: selenium
+selenium_group: selenium
+selenium_systemd_conf_dir: /etc/systemd/system
+
+firefox_version: "47.0.1"
+firefox_file: "firefox-{{firefox_version}}.tar.bz2"
+firefox_download_url: "http://{{repo_server}}/firefox/{{firefox_file}}"
+firefox_home_dir: "/opt/firefox"
+firefox_upgrade: "no"

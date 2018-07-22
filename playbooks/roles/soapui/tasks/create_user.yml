@@ -1,0 +1,17 @@
+---
+
+- name: Create the SoapUI group
+  group:
+    name: soapui
+    system: true
+    state: present
+
+- name: Create the SoapUI user
+  user:
+    name: soapui
+    group: soapui
+    comment: SoapUI
+    shell: /bin/bash
+    home: "/opt/soapui"
+    createhome: false
+    system: true

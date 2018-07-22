@@ -1,0 +1,8 @@
+---
+
+project: VM-Snapshot-Create
+playbook: playbooks/VmSnapshotCreate.yml
+parameters:
+ - username
+ - password
+ - vmhosts

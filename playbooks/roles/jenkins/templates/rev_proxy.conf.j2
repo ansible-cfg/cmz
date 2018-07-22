@@ -1,0 +1,29 @@
+<VirtualHost *:80>
+  ServerName {{ansible_fqdn}}
+  ServerAlias {{ansible_fqdn}}
+  Redirect permanent / https://{{ansible_fqdn}}/
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName {{ansible_fqdn}}
+  ServerAlias {{ansible_fqdn}}
+ 
+  SSLEngine On
+  SSLCertificateFile {{ssl_cert_cert_path}}
+  SSLCertificateKeyFile {{ssl_cert_privkey_path}}
+ 
+  ProxyRequests     Off
+  ProxyPreserveHost On
+  AllowEncodedSlashes NoDecode
+
+  <Proxy *>
+    Order deny,allow
+    Allow from all
+  </Proxy>
+  ProxyPass         /  http://localhost:8080/ nocanon
+  ProxyPassReverse  /  http://localhost:8080/
+  ProxyPassReverse  /  http://{{ansible_fqdn}}/
+  RequestHeader set X-Forwarded-Proto "https"
+  RequestHeader set X-Forwarded-Port "443"
+
+</VirtualHost>

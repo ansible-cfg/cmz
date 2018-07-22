@@ -1,0 +1,97 @@
+---
+
+automationportal_version: "1.27"
+middleware_version: "1.6.9"
+cmdbadaptor_version: "1.2.6.1"
+
+#
+# Automationportal vars
+#
+portal_modules_cmdb_endPoint: "{{protocol_por}}://localhost:{{port_por}}/cmdb-adaptor"
+portal_modules_cmdbnetops_endPoint: "{{protocol_por}}://localhost:{{port_por}}/cmdb-netops-adaptor"
+portal_modules_middleware_endPoint: "{{protocol_por}}://localhost:{{port_por}}/middleware"
+portal_notifications_sms_from: "not_used_as_of_feb_2018"
+portal_notifications_email_to: "bizi.busuioc@sap.com;eduard-andrei.boamba@sap.com;akshay.aggarwal@sap.com;daniela.camelia.bumb@sap.com"
+# localized on classic vs new DCs level. Value in classic DC: "OU=MA,DC=hybrishosting,DC=com":
+portal_security_ldap_userSearchBase: "OU=Accounts,DC=ycs,DC=io"
+# localized on classic vs new DCs level. Value in classic DC: "userName"
+portal_security_cmdbColumn: "userId"
+portal_server_port: "{{port_por}}"
+portal_endPoints_ytr2_testsuiteNotification: "{{protocol_por}}://{{ansible_hostname}}:{{port_por}}/qa/notify/$jobid"
+portal_url: "https://{{loadbalanced_url['por']['fqdn']}}/"
+logging_file: "/var/log/automation/portal/portal.log"
+portal_datacenter_key: "0"  # Value overwritten per-DC
+spring_mail_host: "localhost"  # Value overwritten per-DC
+portal_security_ldap_endPoint: "ldap://"  # Value overwritten per-DC
+
+
+
+#
+# Middleware vars
+#
+files_notification_url: "{{protocol_por}}://{{ansible_hostname}}:{{port_por}}/middleware/notifications/getfiles"
+maintenance_notification_url: "{{protocol_por}}://{{ansible_hostname}}:{{port_por}}/middleware/notifications/maintenance"
+rundeck_inbound_datacenter_prefix: "not_used_any_more_as_of_2018-02"
+middleware_cmdb_security_enabled: "true"
+middleware_custom_security_portalauth_role: "USER"
+middleware_custom_security_serviceauth_role: "USER"
+# localized on classic vs new DCs level. Value in classic DC: "classic":
+middleware_datacenter_type: "easy"
+# localized on classic vs new DCs level. Value in classic DC: ".hybrishosting.com"
+middleware_host_suffix: ".ycommerce.ycs.io"
+middleware_cmdbnetops_security_enabled: "true"
+middleware_ssh_port: 22
+middleware_ssh_user: "svc_portal2ssh"  # Value overwritten per-DC
+middleware_ssh_key: "/opt/automation/master-config/middleware/{{middleware_ssh_user}}/id_rsa"
+middleware_rundeck_datacenter_prefix: ""
+middleware_rundeck_outbound_datacenter_key: "0"  # Value overwritten per-DC
+middleware_yaml_local_repository: "/opt/automation/repository/yaml"
+middleware_yaml_remote_repository: "ssh://git@enterprise-stash.hybris.com:7999/gi/ycm-hiera-content-integration.git"
+middleware_yaml_ssh_key_path: "/opt/automation/master-config/middleware/srvc_JeDNUd/id_rsa"
+middleware_ansible_host: "localhost"
+middleware_ansible_ssh_user: "svc_portal2ssh" # Value overwritten per-DC
+middleware_ansible_ssh_key: "/opt/automation/master-config/middleware/{{middleware_ansible_ssh_user}}/id_rsa"
+middleware_email_host: "mail-{{dc.id}}.infra.ycs.io"
+
+#
+# Cmdbadaptor vars:
+#
+cmdbadaptor_logging_config: "classpath:logback-prod.xml"
+cmdbadaptor_customer_security_basicauth_role: "USER"
+
+
+#
+# Variables defined in the encrypted vault file portal.vault.yml:
+# They are here for the sake of searchability:
+# See http://docs.ansible.com/ansible/2.4/playbooks_best_practices.html#best-practices-for-variables-and-vaults
+#
+defined_in_portal.vault.yml:
+  - cmdb_security_user
+  - cmdb_security_password
+  - cmdbnetops_security_user
+  - cmdbnetops_security_password
+  - middleware_security_user
+  - middleware_security_password
+  - portal_notifications_sms_account_sid
+  - portal_notifications_sms_auth_token
+  - middleware_wiki_confluence_user
+  - middleware_wiki_confluence_pass
+  - middleware_cmdb_security_user
+  - middleware_cmdb_security_password
+  - middleware_custom_security_portalauth_user
+  - middleware_custom_security_portalauth_password
+  - middleware_custom_security_serviceauth_user
+  - middleware_custom_security_serviceauth_password
+  - middleware_cmdbnetops_security_user
+  - middleware_cmdbnetops_security_password
+  - middleware_ssh_password
+  - middleware_rundeck_outbound_auth_token
+  - middleware_yaml_remote_user
+  - middleware_yaml_remote_pass
+  - cmdbadaptor_password_encryption_key
+  - cmdbadaptor_customer_security_basicauth_user
+  - cmdbadaptor_customer_security_basicauth_password
+  - cmdbadaptor_spring_datasource_username
+  - cmdbadaptor_spring_datasource_password
+  - middleware_catchpoint_auth_client_id
+  - middleware_catchpoint_auth_client_secret

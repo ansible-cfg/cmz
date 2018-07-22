@@ -1,0 +1,19 @@
+---
+
+- name: list maintenance windows
+  hosts: Control
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: get all maintenance windows from Dynatrace
+    dynatrace_maintenance_window:
+      api_url: "{{dynatrace_api_url}}"
+      api_token: "{{dynatrace_api_maintenance_token}}"
+      command: list
+    environment:
+      https_proxy: "{{ internet_proxy }}"
+    register: api_result
+
+  - name: print the maintenance windows list
+    debug:
+      var: api_result.response_json

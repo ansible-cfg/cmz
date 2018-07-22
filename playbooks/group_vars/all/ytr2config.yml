@@ -1,0 +1,29 @@
+---
+
+ytr2config_selenium_properties_proxy_host: "{{internet_proxy_host}}"
+ytr2config_selenium_properties_proxy_port: "{{internet_proxy_port}}"
+
+# Version to install. Customer_plugin_urls are defined per DC
+ytestrunner2_core_url: https://repository.hybris.com/hcs-release/com/hybris/cs/pqe/ytestrunner2/1.9.34-RELEASE/ytestrunner2-1.9.34-RELEASE-boot.jar
+ytestrunner2_plugin_urls:
+  - "https://repository.hybris.com/hcs-release/com/hybris/cs/pqe/ytr2hybris/1.1.75-RELEASE/ytr2hybris-1.1.75-RELEASE.jar"
+  - "https://repository.hybris.com/hcs-release/com/hybris/cs/pqe/ytr2legacy/1.0.52-RELEASE/ytr2legacy-1.0.52-RELEASE.jar"
+ytestrunner2_customer_plugin_urls: []
+
+#
+# Variables defined in the encrypted vault file ytr2config.vault.yml:
+# They are here for the sake of searchability:
+# See http://docs.ansible.com/ansible/2.4/playbooks_best_practices.html#best-practices-for-variables-and-vaults
+#
+# Use ./utils/checkVaultFileVarlist.sh to check for missing properties
+#
+
+defined_in_ytr2config.vault.yml:
+  - ytr2config_basicauth_properties_user
+  - ytr2config_basicauth_properties_pass
+  - ytr2config_keyfiles_properties_serviceuser_keyfilename
+  - ytr2config_keyfiles_properties_serviceuser_name
+  - ytr2config_wiki_properties_confluence_user
+  - ytr2config_wiki_properties_confluence_pass
+  - ytr2config_usernames_properties_serviceuser_name
+  - ytr2config_usernames_properties_serviceuser_pass

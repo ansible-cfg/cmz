@@ -1,0 +1,7 @@
+---
+
+project: Maintenance-Window-Delete
+branch: master
+playbook: playbooks/MaintenanceWindowDelete.yml
+parameters:
+  - maintenance_id

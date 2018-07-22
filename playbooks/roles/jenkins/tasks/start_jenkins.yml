@@ -1,0 +1,14 @@
+---
+
+- name: enable jenkins to start
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+
+- name: Wait until jenkins port becomes accessable
+  wait_for:
+    port: 8080
+    delay: 5
+    sleep: 1
+    timeout: 90

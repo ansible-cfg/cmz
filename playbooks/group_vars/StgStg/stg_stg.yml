@@ -1,0 +1,22 @@
+---
+
+loadbalancer: stg-cmz-webpvip-001.ycommerce.ycsdev.io
+
+loadbalanced_url:
+  rdk:
+    fqdn: stg-rdk-s.ycommerce.ycsdev.io
+  por:
+    fqdn: stg-por-s.ycommerce.ycsdev.io
+  ytr:
+    fqdn: stg-ytr-s.ycommerce.ycsdev.io
+  repo:
+    fqdn: stg-repo-s.ycommerce.ycsdev.io
+  ctrl:
+    fqdn: stg-ctrl-s.ycommerce.ycsdev.io
+
+ytr_nfs_server: stg-cmz-ytrpst-001.ycommerce.ycsdev.io
+rdk_nfs_server: stg-cmz-rdkpst-001.ycommerce.ycsdev.io
+
+cmdbadaptor_spring_datasource_url: jdbc:mysql://stg-cmz-cmdbs-001.ycommerce.ycsdev.io:3306/portal_001?useUnicode=true&amp;characterEncoding=UTF-8
+middleware_portal_server_address: http://{{ansible_fqdn}}:8080
+middleware_rundeck_outbound_server_address: https://stg-cmz-rdks-001.ycommerce.ycsdev.io:4443

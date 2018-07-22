@@ -1,0 +1,40 @@
+---
+
+- name: Install Apache
+  package:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - "{{apache_package}}"
+    - mod_ssl
+  tags: apache
+  notify:
+    - restart httpd
+
+- name: Apache ServerName config
+  template:
+    src: ServerName.conf.j2
+    dest: /etc/httpd/conf.d/servername.conf
+    mode: 0644
+  tags: apache
+  notify:
+    - restart httpd
+
+- name: Apache Security config
+  template:
+    src: security.conf.j2
+    dest: /etc/httpd/conf.d/security.conf
+    mode: 0644
+  tags: apache
+  notify:
+    - restart httpd
+
+- name: Enable and start httpd service
+  service:
+    name: httpd
+    state: started
+    enabled: true
+  tags: apache
+
+- include: apache_test.yml
+  tags: apache

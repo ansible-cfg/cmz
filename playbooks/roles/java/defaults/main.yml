@@ -1,0 +1,13 @@
+---
+
+java_vendor: Oracle
+
+java_defaults:
+  Oracle:
+    version: "1.8.0_144"
+    installer_name_template: "jdk-8u144-linux-x64.rpm"
+  SAP:
+    version: "8.1.032"
+    installer_name_template: "sapjvm_<VERSION>-linux-x64.rpm"
+
+java_download_base_url: "http://{{repo_server}}/{{java_vendor | lower}}-java"

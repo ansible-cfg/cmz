@@ -1,0 +1,80 @@
+---
+
+# Download the Portal artifacts to the Ansible control machine
+# for variable expansion in "WEB-INF/classes/application.properties".
+# Ansible expands variables in application.properties with values of the currently active set of variables.
+# THIS HAPPENS ON THE LOCAL ANSIBLE CONTROL MACHINE!
+- name: Download deployment war in CTRL VM
+  include: deployment_download_war.yml
+  vars:
+    deploy_vars: "{{deployment_vars}}"
+  delegate_to: 127.0.0.1
+  run_once: true
+  become: false
+
+- name: Install Portal Java artifacts on the target hosts
+  include: deployment_install_archives.yml
+  vars:
+    deploy_vars: "{{deployment_vars}}"
+  become: true
+  become_user: tomcat
+  
+- name: Symlink /opt/automation/repository/envs to {{'/opt/automation/webapps/portal/automation-portal-' + automationportal_version + '/envs'}}
+  file:
+    src: /opt/automation/repository/envs
+    name: "{{'/opt/automation/webapps/portal/automation-portal-' + automationportal_version + '/envs'}}"
+    owner: root
+    group: root
+    state: link
+  when: deployment_vars.component == "automation-portal"
+
+- name: Symlink /opt/automation/repository/customers to {{'/opt/automation/webapps/portal/automation-portal-' + automationportal_version + '/customers'}}
+  file:
+    src: /opt/automation/repository/customers
+    name: "{{'/opt/automation/webapps/portal/automation-portal-' + automationportal_version + '/customers'}}"
+    owner: root
+    group: root
+    state: link
+  when: deployment_vars.component == "automation-portal"
+
+- name: restart tomcat
+  service:
+    name: tomcat
+    enabled: true
+    state: restarted
+
+- name: Wait maximum 120 seconds for tomcat port
+  wait_for:
+    port: "{{port_por}}"
+    state: started
+    timeout: 120
+
+- name: Wait maximum 120 seconds for Portal webservice response
+  uri:
+    url: "{{protocol_por}}://127.0.0.1:{{port_por}}"
+    method: GET
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+    timeout: 120
+
+- name: Run automationportal tests
+  include: test_automationportal.yml
+  when: deployment_vars.component == "automation-portal"
+  tags: automationportal_selfcheck
+
+- name: Run middleware tests
+  include: test_middleware.yml
+  when: deployment_vars.component == "middleware"
+  tags: middleware_selfcheck
+
+- name: Run cmdbadaptor tests
+  include: test_cmdbadaptor.yml
+  when: deployment_vars.component == "cmdb-adaptor"
+  tags: cmdbadaptor_selfcheck
+
+- name: Tell the user to update the version Wiki manually
+  debug:
+    msg: |
+      Update https://wiki.hybris.com/display/MSPIPS/Cloud+Services+Automation+Platform+-+Version+Matrix+per+Data+Center

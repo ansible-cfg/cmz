@@ -1,0 +1,18 @@
+[Unit]
+Description=X Virtual Frame Buffer Service
+After=network.target
+Documentation=man:Xvfb(1)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/Xvfb :13 -screen 0 1024x768x24 -ac -nolisten tcp
+LimitNOFILE=10000
+WorkingDirectory={{selenium_base_dir}}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+User={{selenium_user}}
+Group={{selenium_group}}
+
+[Install]
+WantedBy=multi-user.target

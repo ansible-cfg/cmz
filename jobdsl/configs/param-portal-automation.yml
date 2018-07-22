@@ -1,0 +1,5 @@
+---
+
+project: Portal-Automation-Deploy
+branch: master
+playbook: playbooks/DeployAutomationPortal.yml

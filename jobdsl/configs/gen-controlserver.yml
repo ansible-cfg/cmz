@@ -1,0 +1,5 @@
+---
+
+project: ControlServer-Deploy
+branch: master
+playbook: playbooks/ControlServer.yml

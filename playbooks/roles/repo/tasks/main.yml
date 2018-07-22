@@ -1,0 +1,19 @@
+---
+
+- name: Updating httpd.configuration file
+  template:
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+
+- name: Removing welcome.conf file
+  file:
+    path: /etc/httpd/conf.d/welcome.conf
+    state: absent
+
+- name: Restarting httpd service
+  service:
+    name: httpd
+    state: restarted
+
+- block:
+  - include: rsync.yml

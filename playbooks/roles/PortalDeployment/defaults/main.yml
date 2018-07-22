@@ -1,0 +1,37 @@
+---
+
+artefact_type: "hcs-release"
+artefactory_base_url: "https://repository.hybris.com/{{artefact_type}}/com/hybris/devops"
+
+automationportal:
+  # name of the component (used in conditionals in subsequent code):
+  component: "automation-portal"
+  # Artifactory download url of the java archive:
+  url: "{{artefactory_base_url}}/portal/automation-portal/{{automationportal_version}}/automation-portal-{{automationportal_version}}.war"
+  # name of the java archive
+  jarch: "automation-portal.war"
+  # the target directory for the java archive
+  dir: "{{'/opt/automation/webapps/portal/automation-portal-' + automationportal_version}}"
+  # the temporary dir on the Ansible control machine where the archive and application.properties are stored:
+  tempdir: "/tmp/automation-portal"
+  # symlink name created under /opt/automation/webapps:
+  symlink: "ROOT"
+
+repository:
+  customers: "/opt/automation/repository/customers"  
+  
+cmdbadaptor:
+  component: "cmdb-adaptor"
+  url:  "{{artefactory_base_url}}/cmdb/cmdb-adaptor/{{cmdbadaptor_version}}/cmdb-adaptor-{{cmdbadaptor_version}}.war"
+  jarch: "cmdb-adaptor.war"
+  dir: "{{'/opt/automation/webapps/cmdb-adaptor/cmdb-adaptor-' + cmdbadaptor_version}}"
+  tempdir: "/tmp/cmdb-adaptor"
+  symlink: "cmdb-adaptor"
+  
+middleware:
+  component: "middleware"
+  url: "{{artefactory_base_url}}/cmdb/middleware/{{middleware_version}}/middleware-{{middleware_version}}.war"
+  jarch: "middleware.war"
+  dir: "{{'/opt/automation/webapps/middleware/middleware-' + middleware_version}}"
+  tempdir: "/tmp/middleware"
+  symlink: "middleware"

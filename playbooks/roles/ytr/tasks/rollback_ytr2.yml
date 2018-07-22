@@ -1,0 +1,15 @@
+---
+
+- name: delete previous failed deployment if it exists
+  file:
+    path: "{{ytestrunner2_failed_deploy}}"
+    state: absent
+
+- name: move failed "{{ytestrunner2_basedir}}" to "{{ytestrunner2_failed_deploy}}"
+  command: mv "{{ytestrunner2_basedir}}" "{{ytestrunner2_failed_deploy}}"
+  
+- name: copy log from "{{ytestrunner2_logfile}}"
+  command: cp "{{ytestrunner2_logfile}}" "{{ytestrunner2_failed_deploy}}"
+
+- name: restore backup directory
+  command: mv "{{ytestrunner2_previous_deploy}}" "{{ytestrunner2_basedir}}"

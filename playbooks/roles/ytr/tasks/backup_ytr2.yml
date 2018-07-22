@@ -1,0 +1,16 @@
+---
+
+- name: check if there is an already existing installation
+  stat:
+    path: "{{ytestrunner2_basedir}}"
+  register: ytestrunner2_install_path
+
+- name: remove previous backup if exists
+  file:
+    path: "{{ytestrunner2_previous_deploy}}"
+    state: absent
+  when: ytestrunner2_install_path.stat.exists
+
+- name: backup "{{ytestrunner2_basedir}}" to "{{ytestrunner2_previous_deploy}}"
+  command: mv "{{ytestrunner2_basedir}}" "{{ytestrunner2_previous_deploy}}"
+  when: ytestrunner2_install_path.stat.exists

@@ -1,0 +1,18 @@
+---
+
+# variables for all envs of the Boston Lab datacenter
+
+# Do not use these directly, use dc.id, dc.name etc.
+_dc_id: "ddv"
+_dc_name: "Boston Lab"
+
+service_user: "svc_ddvansible"
+service_user_group: "svc_ddvansible"
+
+internet_proxy_host: "proxy-ycm-ddv.ycommerce.ycsdev.io"
+internet_proxy_port: "3128"
+internet_proxy: "http://{{internet_proxy_host}}:{{internet_proxy_port}}"
+
+vra_api_fqdn: "bo2-vra-ddv.ycsdev.io"
+
+mailserver: "???"

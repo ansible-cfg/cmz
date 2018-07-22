@@ -1,0 +1,38 @@
+---
+
+# TODO: RPM should be used to install
+# 'When' should be boolean check, but 'true/False' was not giving proper results
+- name: Delete firefox directory
+  file:
+    path: /opt/firefox
+    state: absent
+  when: firefox_upgrade == "yes"
+
+- name: "Unpack firefox into /opt"
+  unarchive:
+    src: "{{firefox_download_url}}"
+    remote_src: true
+    dest: "/opt"
+    owner: "{{selenium_user}}"
+    group: "{{selenium_group}}"
+    creates: /opt/firefox
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+
+- name: "Create symlink to firefox executable"
+  file:
+    src: "{{firefox_home_dir}}/firefox"
+    dest: "/usr/bin/firefox"
+    mode: 0755
+    state: link
+
+- name: "Install firefox profile.d script"
+  template:
+    src: templates/firefox.sh
+    dest: /etc/profile.d/firefox.sh
+    mode: 0644
+
+# TODO: This should be done via some proper testing utility
+- name: "Check that firefox works"
+  command: "firefox -v"
+  become_user: "{{selenium_user}}"
+  changed_when: false

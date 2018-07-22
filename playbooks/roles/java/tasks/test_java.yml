@@ -1,0 +1,13 @@
+---
+
+- name: "Check Java vendor is '{{java_vendor}}'"
+  shell: /usr/java/latest/bin/java -XshowSettings:properties -version 2>&1 | grep java.vendor | awk '{print $3}' | sed 's/"//g' | head -1
+  register: java_vendor_found
+  changed_when: false
+  failed_when: java_vendor_found.stdout is not version_compare(java_vendor)
+
+- name: "Check Java version is '{{java_version}}'"
+  shell: /usr/java/latest/bin/java -XshowSettings:properties -version 2>&1 | grep java.version | awk '{print $3}' | sed 's/"//g' | head -1
+  register: java_version_found
+  changed_when: false
+  failed_when: java_version_found.stdout is not version_compare(java_version)

@@ -1,0 +1,36 @@
+---
+
+- name: Check if we need to install MySQL server
+  command: "rpm -q MySQL-server-5.5.57"
+  register: install_mysql_server
+  ignore_errors: true
+  failed_when: false
+  changed_when: false
+
+- block:
+  # get the mysql packages from the repo server
+  - include: mysql_packages.yml
+    static: true
+
+  - name: Select rpms for mysql server installation
+    shell: cp MySQL-{{item}}-*.rpm  server_rpms
+    with_items:
+      - server
+      - client
+      - devel
+      - shared
+      - shared-compat
+    args:
+      chdir: /tmp/ansible_tempdir/mysql
+
+  # To ensure correct order of installtion we need to install with the asterics (*)
+  # This is why we cannot go for the package or yum module.
+  - name: Install MySQL
+    shell: yum install -y /tmp/ansible_tempdir/mysql/server_rpms/MySQL-*.rpm
+
+  - name: Enable and start the MySQL server
+    service:
+      name: mysql
+      enabled: true
+      state: started
+  when: "install_mysql_server.rc != 0"

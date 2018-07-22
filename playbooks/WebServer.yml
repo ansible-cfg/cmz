@@ -1,0 +1,11 @@
+---
+
+- hosts: Web
+
+  become: true
+
+  roles:
+    - os_packages
+    - user_management
+    - apache
+    - WebServer

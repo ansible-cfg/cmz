@@ -1,0 +1,26 @@
+{#
+  TODO:
+    limit puser access to: localnet/VPNNet + 196.168.% (Vagrant)
+    Do not limit puser access to ... ON "{{cmdb_db}}".* ...: puser is a hidden admin user for Portal Devs
+#}
+/*
+    {{ansible_managed}}
+*/
+
+-- create empty CMDB:
+CREATE DATABASE IF NOT EXISTS `{{cmdb_db}}`;
+
+-- password for admin user from localhost:
+SET PASSWORD FOR 'root'@'localhost' = PASSWORD('{{vault_cmdb_admin_password}}');
+
+-- admin user from anywhere: We should not allow this ...
+-- let's see what happens after disabling this
+-- GRANT ALL PRIVILEGES ON *.* TO '{{vault_cmdb_admin_user}}'@'%' IDENTIFIED BY '{{vault_cmdb_admin_password}}' WITH GRANT OPTION;
+
+-- portal user from localhost, needed e.g. for backup:
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EVENT, TRIGGER ON *.* TO '{{vault_cmdb_portal_user}}'@'localhost' IDENTIFIED BY '{{vault_cmdb_portal_password}}';
+
+-- portal user from anywhere:
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES, LOCK TABLES, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EVENT, TRIGGER ON *.* TO '{{vault_cmdb_portal_user}}'@'%' IDENTIFIED BY '{{vault_cmdb_portal_password}}';
+
+FLUSH PRIVILEGES;

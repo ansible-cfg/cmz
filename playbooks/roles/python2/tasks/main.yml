@@ -1,0 +1,15 @@
+---
+
+- include: install_python2.yml
+  become: true
+  tags: python
+
+- include: pypa_install_pip.yml
+  become: true
+  when: pip_source == 'internet'
+  tags: python
+
+- include: os_package_install_pip.yml
+  become: true
+  when: pip_source == 'packagemanager'
+  tags: python

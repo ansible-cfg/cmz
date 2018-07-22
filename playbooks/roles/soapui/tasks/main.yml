@@ -1,0 +1,4 @@
+---
+
+- include: create_user.yml
+- include: install_soapui.yml

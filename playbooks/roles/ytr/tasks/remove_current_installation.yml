@@ -1,0 +1,8 @@
+---
+
+# In order to avoid any kind of left-over state / manual modifications etc. 
+# the current installation should be deleted, and recreated from scratch
+- name: Delete "{{ytestrunner2_basedir}}"
+  file:
+    path: "{{ytestrunner2_basedir}}"
+    state: absent

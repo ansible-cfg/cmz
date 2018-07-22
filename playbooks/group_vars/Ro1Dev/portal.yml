@@ -1,0 +1,3 @@
+---
+
+cmdbadaptor_logging_config: "classpath:logback-dev.xml"

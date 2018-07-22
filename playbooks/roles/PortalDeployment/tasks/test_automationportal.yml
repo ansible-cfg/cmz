@@ -1,0 +1,17 @@
+---
+
+# Selfcheck docu:  https://wiki.hybris.com/display/MSPIPS/Cloud+Services+Portal+-+Self+Check+Service
+
+- name: Run Portal selfcheck
+  uri:
+    url: "{{protocol_por}}://127.0.0.1:{{port_por}}/selfcheck"
+    method: GET
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+  register: portal_selfcheck
+
+- name: Display Portal selfcheck output
+  debug:
+    var: portal_selfcheck.content | from_json

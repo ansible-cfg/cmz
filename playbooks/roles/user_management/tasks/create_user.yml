@@ -1,0 +1,38 @@
+---
+
+- name: Create user account {{item.key}}
+  user:
+    name: "{{item.key}}"
+    comment: "{{item.value.comment}}"
+    state: present
+    shell: /bin/bash
+    groups: "{{item.value.groups}}"
+    append: true
+    generate_ssh_key: false
+
+- name: Create ssh directory for user {{item.key}}
+  file:
+    dest: "/home/{{item.key}}/.ssh"
+    state: directory
+    owner: "{{item.key}}"
+    group: "{{item.key}}"
+    mode: "0700"
+
+- name: Create the /etc/sudoers.d directory
+  file:
+    dest: /etc/sudoers.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Install sudoers file for {{item.key}}
+  copy:
+    src: "{{item.value.sudo_config}}"
+    dest: "/etc/sudoers.d/{{item.key}}"
+    owner: root
+    group: root
+    mode: "0440"
+  when:
+    - item.value.sudo_config
+    - (item.value.pubkey_ansible_grps | intersect(group_names) | length) > 0

@@ -1,0 +1,8 @@
+---
+
+project: VM-Snapshot-Revert
+playbook: playbooks/VmSnapshotRevert.yml
+parameters:
+ - username
+ - password
+ - vmhosts

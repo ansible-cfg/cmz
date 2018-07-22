@@ -1,0 +1,14 @@
+#
+# {{ansible_managed}}
+#
+
+/var/log/automation/cmdb-adaptor/cmdb-adaptor.log
+/var/log/automation/middleware/middleware.log
+/var/log/automation/portal/portal.log {
+    daily
+    compress
+    missingok
+    notifempty
+    rotate 30
+    copytruncate
+}

@@ -1,0 +1,17 @@
+---
+
+# Selfcheck docu:  
+
+- name: Run middleware selfcheck
+  uri:
+    url: "{{protocol_por}}://127.0.0.1:{{port_por}}/middleware/selfcheck"
+    method: GET
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+  register: middleware_selfcheck
+
+- name: Display Portal middleware selfcheck output
+  debug:
+    var: middleware_selfcheck.content | from_json

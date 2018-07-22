@@ -1,0 +1,24 @@
+---
+
+- name: Install Python pip via OS package manager
+  package:
+    name: python2-pip
+    state: latest
+
+- name: Update pip repo to hybris artifactory
+  template:
+    src: pip.conf.j2
+    dest: "/etc/pip.conf"
+
+- name: Upgrade pip to latest version from hybris artifactory
+  pip:
+    name: pip
+    extra_args: --upgrade
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Install pip build dependencies
+  package:
+    name: "{{pip_dependencies}}"
+    state: latest

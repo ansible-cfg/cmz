@@ -1,0 +1,2 @@
+Super simple Apache role.
+

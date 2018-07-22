@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# yTR2 startup script.
+
+basedir='{{ytestrunner2_basedir}}'
+plugindir='{{ytestrunner2_plugins_dir}}'
+pidfile='{{ytestrunner2_pidfile}}'
+logfile='{{ytestrunner2_logfile}}'
+java_memory='{{ytestrunner2_java_mem}}'
+
+cp="$CLASSPATH"$(find $plugindir -name "*.jar" -exec printf :{} ';')":$basedir/ytestrunner2.jar"
+#echo "Classpath cp = $cp"
+setsid /usr/bin/java $java_memory -classpath $cp org.springframework.boot.loader.PropertiesLauncher > $logfile &
+echo "$!" > $pidfile

@@ -1,0 +1,13 @@
+---
+
+- include: repo.yml
+
+- include: WebServer.yml
+
+- include: ControlServer.yml
+
+- include: CmdbServer.yml
+
+- include: ytr.yml
+
+- include: PortalServer.yml

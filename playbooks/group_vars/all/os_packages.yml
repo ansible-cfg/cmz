@@ -1,0 +1,15 @@
+---
+
+# OS packages that gets deployed on each VM on each DC
+os_packages:
+  - vim
+  - dos2unix
+  - rsync
+  - tree
+  - zip
+  - unzip
+  - net-tools
+  - yum-plugin-versionlock
+  # the following are not in our RHEL repositories
+  #- xmlstarlet
+  #- htop

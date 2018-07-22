@@ -1,0 +1,102 @@
+---
+
+- name: Testing - request the yTR help page
+  uri:
+    url: "{{protocol_ytr}}://localhost:{{port_ytr}}/help"
+    method: GET
+    validate_certs: false
+    follow_redirects: all
+    user: "{{ytr2config_basicauth_properties_user}}"
+    password: "{{ytr2config_basicauth_properties_pass}}"
+    return_content: false
+    status_code: 200
+  register: ytr_help
+
+- name: Testing - output the yTR help page
+  debug:
+    var: ytr_help
+
+- name: Testing - get the yTR queue status
+  uri:
+    url: "{{protocol_ytr}}://localhost:{{port_ytr}}/queuestatus"
+    method: GET
+    validate_certs: false
+    follow_redirects: all
+    user: "{{ytr2config_basicauth_properties_user}}"
+    password: "{{ytr2config_basicauth_properties_pass}}"
+    return_content: true
+    status_code: 200
+  register: ytr_queuestatus
+
+- name: Testing - display the yTR queue status
+  debug:
+    var: ytr_queuestatus.json
+
+- name: Check if the list of queues is not empty
+  fail:
+    msg: "No queues listed in {{protocol_ytr}}://localhost:{{port_ytr}}/queuestatus"
+  when: ytr_queuestatus.json | length == 0
+
+
+- name: Testing - get a list of yTR selftests
+  uri:
+    url: "{{protocol_ytr}}://localhost:{{port_ytr}}/availabletests"
+    method: POST
+    body: '{"@class":"com.hybris.cs.pqe.ytestrunner2.environment.SystemUnderTest","configurationItems":[],"version":"ytr2","#testControlConfigurationItems":[]}'
+    body_format: json
+    validate_certs: false
+    follow_redirects: all
+    user: "{{ytr2config_basicauth_properties_user}}"
+    password: "{{ytr2config_basicauth_properties_pass}}"
+    return_content: true
+    status_code: 200
+  register: ytr_availabletests
+
+- name: Output available yTR tests
+  debug:
+    var: ytr_availabletests.json
+
+- name: Run the test HybrisComTestSuite com.hybris.cs.pqe.ytestrunner2.specialisation.test.HybrisComTestSuite
+  uri:
+    url: "{{protocol_ytr}}://localhost:{{port_ytr}}/triggertest/com.hybris.cs.pqe.ytestrunner2.specialisation.test.HybrisComTestSuite"
+    method: POST
+    body: '{"@class":"com.hybris.cs.pqe.ytestrunner2.environment.SystemUnderTest","configurationItems":[],"version":"ytr2","#testControlConfigurationItems":[]}'
+    body_format: json
+    validate_certs: false
+    follow_redirects: all
+    user: "{{ytr2config_basicauth_properties_user}}"
+    password: "{{ytr2config_basicauth_properties_pass}}"
+    return_content: true
+    status_code: 200
+  register: ytr_HybrisComTestSuite
+
+- name: Get HybrisComTestSuite test suite JobID
+  debug:
+    var: ytr_HybrisComTestSuite.content
+
+# TODO: do not wait 20 hardcoded seconds, instead use
+# See tasks "Wait max. 2 hours to reach status MAINTAINABLE" for an example
+- name: Wait 20 sec for the HybrisComTestSuite test suite to finish
+  wait_for:
+    timeout: 20
+
+- name: Get HybrisComTestSuite test suite results
+  uri:
+    url: "{{protocol_ytr}}://localhost:{{port_ytr}}/jobreport/{{ytr_HybrisComTestSuite.content}}"
+    method: GET
+    validate_certs: false
+    follow_redirects: all
+    user: "{{ytr2config_basicauth_properties_user}}"
+    password: "{{ytr2config_basicauth_properties_pass}}"
+    return_content: true
+  register: ytr_HybrisComTestSuite_status
+
+- name: Display HybrisComTestSuite test suite status
+  debug:
+    var: ytr_HybrisComTestSuite_status.content | from_json | json_query('status')
+
+# TODO: make this work:
+#- fail:
+#    msg: "HybrisComTestSuite failed: ytr_HybrisComTestSuite.content"
+#  when: ytr_HybrisComTestSuite.content | from_json | json_query('status') != 'PASSED'
+

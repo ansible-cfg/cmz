@@ -1,0 +1,86 @@
+---
+
+- name: Install yum packages
+  yum:
+    name: "{{yum_packages}}"
+    state: present
+
+- name: "Create the yTestRunner2 group"
+  group:
+    name: "{{ytestrunner2_group}}"
+    system: true
+    state: present
+
+- name: "Create the yTestRunner2 user"
+  user:
+    name: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    comment: "yTestRunner2"
+    shell: /bin/bash
+    home: "{{ytestrunner2_basedir}}"
+    system: true
+
+# Make sure that we start from a clean state, remove previous installation
+- name: Delete "{{ytestrunner2_basedir}}"
+  file:
+    path: "{{ytestrunner2_basedir}}"
+    state: absent
+
+- name: "Create the yTestRunner2 directory structure"
+  file:
+    path: "{{item}}" 
+    state: directory
+    mode: 0755
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+  with_items:
+    - "{{ytestrunner2_config_dir}}"
+    - "{{ytestrunner2_plugins_dir}}"
+    - "{{ytestrunner2_report_dir}}"
+    - "{{ytestrunner2_keyfiles_dir}}"
+
+# TODO: After installations on RO1, Mo2 and Sy2 fixed, this permission setting should be removed
+- name: "Make sure permissions are correct for reports"
+  file:
+    path: "{{ytestrunner2_report_dir}}"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    mode: 0644
+  with_fileglob:
+    - "{{ytestrunner2_report_dir}}"
+
+- name: "Create {{ytestrunner2_logfile}} with proper permissions"
+  file:
+    path: "{{ytestrunner2_logfile}}"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    mode: "{{ytestrunner2_logfile_mode}}"
+    state: touch
+
+- name: Create ytestrunner2 logrotate conf
+  template:
+    src: ytestrunner2.logrotate.j2
+    dest: /etc/logrotate.d/ytestrunner2
+
+# TODO: This should be in a systemd conf / service file
+- name: "Install the script to run ytestrunner2"
+  template:
+    src: ytestrunner2.sh.j2
+    dest: "{{ytestrunner2_basedir}}/ytestrunner2.sh"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    mode: 0755
+
+- name: "Copy the ytestrunner2 systemd service"
+  template:
+    src: ytestrunner2.service.j2
+    dest: /etc/systemd/system/ytestrunner2.service
+
+- name: "Copy the ytestrunner2 rsyslog configuration"
+  template:
+    src: ytestrunner2.rsyslog.conf.j2
+    dest: /etc/rsyslog.d/ytestrunner2.conf
+  notify: restart_rsyslogd
+
+- name: Run handlers now
+  meta: flush_handlers

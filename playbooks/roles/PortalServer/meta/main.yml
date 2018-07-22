@@ -1,0 +1,10 @@
+---
+
+dependencies:
+  - role: python2
+  - role: java
+    vars:
+      java_vendor: Oracle
+  - role: tomcat
+    vars:
+      tomcat_logdir: /var/log/automation/tomcat

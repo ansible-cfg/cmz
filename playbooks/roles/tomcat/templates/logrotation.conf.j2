@@ -1,0 +1,16 @@
+#
+# {{ansible_managed}}
+#
+
+{{tomcat_logdir}}/*.log
+{{tomcat_logdir}}/*.txt
+{{tomcat_logdir}}/*.out
+{
+    weekly
+    compress
+    missingok
+    notifempty
+    rotate 10
+    maxsize 100M
+    copytruncate
+}

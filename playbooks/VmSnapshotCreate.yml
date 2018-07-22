@@ -1,0 +1,16 @@
+---
+
+- hosts: Control
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: Create VM Snapshot
+    vra_api:
+      vra_api_fqdn: "{{vra_api_fqdn}}"
+      username: "{{username}}"
+      password: "{{password}}"
+      vmhosts: "{{vmhosts}}"
+      action: create_snapshot
+    register: result
+
+  - debug: var=result

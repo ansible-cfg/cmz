@@ -1,0 +1,8 @@
+---
+
+# Install OS packages we need
+- name: Install OS packages
+  package:
+    name: "{{os_packages}}"
+    state: present
+  tags: os_packages

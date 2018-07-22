@@ -1,0 +1,5 @@
+---
+
+project: yTestrunner2-deploy
+branch: master
+playbook: playbooks/ytr.yml

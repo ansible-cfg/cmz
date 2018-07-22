@@ -1,0 +1,17 @@
+---
+
+# Selfcheck docu:  https://wiki.hybris.com/display/MSPIPS/Cloud+Services+CMDB+-+Self+Check+Service
+
+- name: Run cmdb-adaptor selfcheck
+  uri:
+    url: "{{protocol_por}}://127.0.0.1:{{port_por}}/cmdb-adaptor/selfcheck"
+    method: GET
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+    follow_redirects: all
+    return_content: true
+    status_code: 200
+  register: cmdbadaptor_selfcheck
+
+- name: Display Portal cmdbadaptor selfcheck output
+  debug:
+    var: cmdbadaptor_selfcheck.content | from_json

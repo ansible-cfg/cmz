@@ -1,0 +1,16 @@
+---
+
+# variables for all envs of the Nsq datacenter
+
+# Do not use these directly, use dc.id, dc.name etc.
+_dc_id: "ns1"
+_dc_name: "Newtown Square"
+
+service_user: "svc_ns1ansible"
+service_user_group: "svc_ns1ansible"
+
+internet_proxy_host: "proxy-ycm-ns1.ycommerce.ycs.io"
+internet_proxy_port: "3128"
+internet_proxy: "http://{{internet_proxy_host}}:{{internet_proxy_port}}"
+
+mailserver: "???"

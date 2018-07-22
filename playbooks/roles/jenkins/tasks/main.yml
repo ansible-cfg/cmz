@@ -1,0 +1,35 @@
+---
+
+- include: add_repo.yml
+  when: "'Vagrant' in group_names"
+
+- include: install_jenkins_master.yml
+
+- include: ssl_generate.yml
+
+- include: reverse_proxy.yml
+
+- name: overwrite logrotate config for jenkins
+  copy:
+    src: files/logrotate_d_jenkins
+    dest: /etc/logrotate.d/jenkins
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  become: true
+
+- name: Sets default acl for /var/log/jenkins on Jenkins
+  acl:
+    path: /var/log/jenkins
+    entity:  svc_{{dc.id}}{{item.name}}
+    etype: user
+    permissions: rwx
+    recursive: yes
+    state: present
+  with_items:
+   - name: rundeckdeploy
+  when: "'Vagrant' not in group_names"
+
+- include: install_plugins.yml
+
+- include: start_jenkins.yml

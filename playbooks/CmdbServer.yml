@@ -1,0 +1,14 @@
+---
+
+- hosts: Cmdb
+
+  become: true
+
+  roles:
+    - os_packages
+    - user_management
+    - {
+        role: mysql,
+        install_server: true
+      }
+    - CmdbServer

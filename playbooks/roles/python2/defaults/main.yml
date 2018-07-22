@@ -1,0 +1,16 @@
+---
+
+pip_source: "packagemanager"
+
+pip_hybris_artifactory: "https://repository.hybris.com/api/pypi/pypi/simple/"
+
+pip_dependencies:
+  - python-devel
+  - cscope
+  - ctags
+  - diffstat
+  - gcc
+  - gettext
+  - indent
+  - intltool
+  - libtool

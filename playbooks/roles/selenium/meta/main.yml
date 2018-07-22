@@ -1,0 +1,13 @@
+---
+
+dependencies:
+  - role: java
+
+galaxy_info:
+  description: This role installs Selenium server and upgrade it on request
+  company: SAP
+  min_ansible_version: 2.3.1
+  platforms:
+  - name: CentOS
+    versions:
+    - 7.4

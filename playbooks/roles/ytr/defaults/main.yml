@@ -1,0 +1,25 @@
+---
+# default vars for ytestrunner2
+yum_packages:
+  - nmap-6.40
+
+ytestrunner2_user: ytestrunner2
+ytestrunner2_group: ytestrunner2
+
+ytestrunner2_basedir: /opt/ytestrunner2
+ytestrunner2_config_dir: "{{ytestrunner2_basedir}}/ytr2config"
+ytestrunner2_keyfiles_dir: "{{ytestrunner2_config_dir}}/keyfiles"
+ytestrunner2_plugins_dir: "{{ytestrunner2_config_dir}}/plugins"
+ytestrunner2_ssh_key_file: "{{ytestrunner2_keyfiles_dir}}/id_rsa"
+ytestrunner2_previous_deploy: /opt/ytestrunner2-previous
+ytestrunner2_failed_deploy: /opt/ytestrunner2-failed
+
+ytestrunner2_rollback: false
+
+ytestrunner2_report_dir: /var/ytr2reports
+ytestrunner2_logfile: /var/log/ytr2.log
+ytestrunner2_logfile_mode: "0640"
+# TODO: This should be managed via systemd
+ytestrunner2_pidfile: "{{ytestrunner2_basedir}}/ytestrunner2.pid"
+ytestrunner2_port: 8443
+ytestrunner2_java_mem: '-Xms4g -Xmx4g'  # See CSESRE-895

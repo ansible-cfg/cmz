@@ -1,0 +1,15 @@
+# {{ansible_managed}}
+
+{{ytestrunner2_logfile}} {
+    rotate 7
+    daily
+    copytruncate
+    olddir /var/log/old
+    compress
+    notifempty
+    missingok
+    create {{ytestrunner2_logfile_mode}} {{ytestrunner2_user}} {{ytestrunner2_group}}
+    postrotate
+	    /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+}

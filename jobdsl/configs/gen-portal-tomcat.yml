@@ -1,0 +1,5 @@
+---
+
+project: Portal-Tomcat-Deploy
+branch: master
+playbook: playbooks/PortalServer.yml

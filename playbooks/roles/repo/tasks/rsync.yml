@@ -1,0 +1,80 @@
+- name: Create group
+  group:
+    name: "{{repo_sync_user_group}}"
+    state: present
+
+- name: Create user and add to group
+  user:
+    name: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    state: present
+
+- name: Adding repo user to sudoers file
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: "{{repo_sync_user}} ALL=(ALL) NOPASSWD: ALL"
+  become: true
+
+- name: Create directory .ssh
+  file:
+    dest: /home/{{repo_sync_user}}/.ssh/
+    state: directory
+    owner: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    mode: "0700"
+
+- name: Copy Private key
+  copy:
+    dest: /home/{{repo_sync_user}}/.ssh/repo_sync
+    content: "{{repo_key}}"
+    owner: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    mode: "0600"
+
+- name: Create directory repo_sync
+  file:
+    dest: "/opt/repo_sync"
+    state: directory
+    owner: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    mode: "0755"
+
+- name: copy repo_sync.sh
+  copy:
+    src: files/repo_sync.sh
+    dest: /opt/repo_sync/repo_sync.sh
+    owner: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    mode: "0755"
+
+- name : change permission
+  file:
+    path: "{{item}}"
+    owner: "{{repo_sync_user}}"
+    group: "{{repo_sync_user_group}}"
+    mode: 0755
+    recurse: true
+  with_items:
+    - /var/www
+    - /opt/repo_sync
+
+- name : change permission of output file
+  file:
+    path: "{{item}}"
+    owner: "{{repo_sync_user}}"
+    state: touch
+    group: "{{repo_sync_user_group}}"
+    mode: 0755
+  with_items:
+    - /tmp/rsync.out.txt
+
+# cronjob stored in /opt/repo_sync/repo_sync.sh -sync
+- name: Create the cronjob for a rsync of repo server
+  cron:
+    name: repo sync
+    minute: "*/30"
+    user: "{{repo_sync_user}}"
+    job: "/opt/repo_sync/repo_sync.sh -sync &>/dev/null"
+    cron_file: repo_sync
+    state: present

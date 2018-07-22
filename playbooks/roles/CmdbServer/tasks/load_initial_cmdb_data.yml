@@ -1,0 +1,36 @@
+---
+
+# For the followig to work the svc_*ansible service user needs read access to the
+# HCS-PDO-CNV/repos/cmdb repo via its public ssh key
+- name: Get initial CMDB datadump from source code management to the local Ansible control box
+  git:
+    repo: "{{cmdb_base_data_repo}}"
+    version: "{{cmdb_base_data_branch}}"
+    dest: "{{cmdb_base_datadump_dir}}"
+    force: true
+    accept_hostkey: true
+    key_file: "/home/{{service_user}}/.ssh/id_rsa_sshkey_scm"
+  delegate_to: 127.0.0.1
+  run_once: true
+
+- name: Copy the initial CMDB datadump to the target server
+  copy:
+    src: "{{cmdb_base_datadump}}"
+    dest: "/home/{{service_user}}"
+
+- name: Load initial data into the CMDB if neccessary
+  shell: "mysql -u root -p{{vault_cmdb_admin_password}} --database={{cmdb_db}} < /home/{{service_user}}/{{cmdb_base_datadump_filename}}"
+
+- name: Check successful load of initial data into the CMDB
+  shell: mysql -u {{cmdb_user}} -p{{cmdb_pw}} --batch --skip-column-names -e 'SELECT COUNT(*) FROM {{cmdb_db}}.team_member;'
+  register: mysql_out
+
+#- debug:
+#    var: mysql_out
+
+- name: Fail if loading initial data into the CMDB did not work
+  fail:
+    msg: "COUNT(*) FROM {{cmdb_db}}.team_member is lower than 100. Looks like loading initial CMDB data did not work."
+  when:
+    (mysql_out.rc != 0) or
+    ((mysql_out.stdout | int) < 100)

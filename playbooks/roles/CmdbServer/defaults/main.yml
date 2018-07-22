@@ -1,0 +1,21 @@
+---
+
+cmdb_db: portal_001
+cmdb_user: "{{vault_cmdb_backup_user}}"
+cmdb_pw: "{{vault_cmdb_backup_password}}"
+
+# Loading initial data into the CMDB needs an explicit "load_initial_cmdb_data: true".
+# Otherwise, we could overwriting the produciton CMDB unvoluntarily
+load_initial_cmdb_data: false
+cmdb_base_data_repo: 'ssh://git@enterprise-stash.hybris.com:7999/hcs-pdo-cnv/cmdb.git'
+cmdb_base_data_branch: develop
+cmdb_base_datadump_dir: "/home/{{service_user}}/git_hcs-pdo-cnv/cmdb"
+cmdb_base_datadump_filename: "cmdb_BASE_sy2.sql"
+cmdb_base_datadump: "{{cmdb_base_datadump_dir}}/{{cmdb_base_datadump_filename}}"
+cmdb_backup_mount: "/NFS_DATA"
+cmdb_backup_target_dir: "{{cmdb_backup_mount}}/backups"
+cmdb_backup_keep_days: 30
+
+# MySQL server options, goes to [mysqld] section of /etc/my.cnf
+mysqld_options:
+  max_allowed_packet: 50M

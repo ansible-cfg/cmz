@@ -1,0 +1,92 @@
+#!/bin/bash
+
+#
+# {{ansible_managed}}
+#
+
+#
+# set variables
+#
+
+cmdb_db="{{cmdb_db}}"
+cmdb_user="{{cmdb_user}}"
+cmdb_pw="{{cmdb_pw}}"
+
+debug=false
+
+backup_target_server=`hostname --short`
+backup_target_dir="{{cmdb_backup_target_dir}}"
+cmdb_dumpfile="CMDB_${backup_target_server}_"`date '+%Y-%m-%d_%H-%M'`".dump.sql"
+cmdb_archive="${cmdb_dumpfile}.zip"
+
+$debug && echo "backup target is: ${backup_target_dir}/${cmdb_archive}"
+
+purge_old_backups_days="{{cmdb_backup_keep_days}}"
+
+function usage() {
+  cat <<Usage
+
+  $(basename $0) [OPTIONS]
+  This script needs to run on the CMDB server e.g. {{groups['Cmdb'][0]}}, as the service user {{service_user}}.
+  It takes mysql dump and then stores it in NFS mount as zip file.
+  The name of the backup contains the hostname of the backed-up CMDB.
+  Which in turn contains datacenter and environment information.
+
+  The script also deletes backups older than ${purge_old_backups_days} days.
+  It keeps one old backup per month for max. 2 years
+
+  Restore the dump with:  mysql -u USER -pPW  < /PATH/2/DUMPFILE
+  If you are not restoring into an empty database:
+  Be aware that tables from the dump completely replace their existing equivalents!
+
+  OPTIONS:
+  --help -h
+  --debug -d    Be verbose, might show secrets
+
+  Examples:
+    $(basename $0) --debug
+
+Usage
+}
+
+#
+# Handle parameters and options
+#
+
+declare -a args=()
+while [ $# -gt 0 ]
+do
+    $debug && echo 'Commandline parsing: Number of params: '$#'; Params: '$*'; Current param: '$1
+    case $1 in
+      --help|-h)        usage; exit 0 ;;
+      --debug|-d)       shift; debug=true ;;
+      --*|-*)           usage; echo -e "Unknown option $1\n"; exit 1 ;;
+       *)               args=("${args[@]}" "$1"); shift ;;
+    esac
+done
+$debug && { echo -n "Arguments = "; declare -p args; }
+
+#
+# start working
+#
+
+echo "Dumping the CMDB."
+$debug && echo -e "Dumping with:\nmysqldump -u ${cmdb_user} -p${cmdb_pw} --opt --events --ignore-table=mysql.event --database ${cmdb_db} mysql --result-file=${backup_target_dir}/${cmdb_dumpfile}"
+mysqldump -u "${cmdb_user}" -p"${cmdb_pw}" --opt --events --ignore-table=mysql.event --databases "${cmdb_db}" "mysql" --result-file="${backup_target_dir}/${cmdb_dumpfile}"
+
+echo "Creating a zip-archive from the dump"
+$debug && echo "zip --junk-paths ${cmdb_dumpfile} ${backup_target_dir}/${cmdb_dumpfile}"
+zip --junk-paths "${backup_target_dir}/${cmdb_archive}" "${backup_target_dir}/${cmdb_dumpfile}"
+rm "${backup_target_dir}/${cmdb_dumpfile}"
+
+if [ -f "${backup_target_dir}/${cmdb_archive}" ]
+then
+    echo -e "Remove backups older than ${purge_old_backups_days} days"
+    find "${backup_target_dir}" -type f -and -mtime +"${purge_old_backups_days}" -and -not -name '*-01_0?-*' -delete
+    echo "Setting the 'latest' symlink on the backup server"
+    ln -sf "${backup_target_dir}/${cmdb_archive}" "${backup_target_dir}/latest"
+else
+    echo "Error: for some reason the zip-archive containing the SQL dump file could not be created."
+    rm -f "${cmdb_dumpfile}"
+    exit 1
+fi

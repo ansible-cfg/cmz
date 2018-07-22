@@ -1,0 +1,5 @@
+---
+
+project: Webserver-Deploy
+branch: master
+playbook: playbooks/WebServer.yml

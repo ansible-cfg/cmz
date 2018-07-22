@@ -1,0 +1,46 @@
+---
+
+- name: "Validate Java Vendor"
+  fail:
+    msg: "Unknown Java vendor specified: '{{java_vendor}}'.  Expected values are: [ Oracle, SAP ]"
+  when: java_vendor not in ['Oracle', 'SAP']
+  tags: java
+
+- name: "Determine Version"
+  set_fact:
+    java_version: "{{java_version | default(java_defaults[java_vendor].version)}}"
+  tags: java
+
+- name: "Determine the installer name"
+  set_fact:
+    java_installer_name: "{{java_defaults[java_vendor].installer_name_template | regex_replace('^(.*)<VERSION>(.*)$', '\\1{{java_version}}\\2')}}"
+  tags: java
+
+- name: "Determine the download url"
+  set_fact:
+    java_download_url: "{{java_download_base_url}}/{{java_installer_name}}"
+  tags: java
+
+- name: "Download the Java installer from {{java_download_url}}"
+  get_url:
+    url: "{{java_download_url}}"
+    dest: "/tmp/{{java_installer_name}}"
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+  changed_when: false  # Downloading the RPM alone does not change the installed Java status
+  tags: java
+
+- name: "Install Java"
+  yum:
+    name: "/tmp/{{java_installer_name}}"
+    state: present
+  become: true
+  tags: java
+
+- name: "SAP JVM Alternatives"
+  include: sap_jvm_alternatives.yml
+  when: java_vendor == "SAP"
+  tags: java
+
+- name: "Verify"
+  include: test_java.yml
+  tags: [ java, test ]

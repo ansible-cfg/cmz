@@ -1,0 +1,5 @@
+---
+
+project: Maintenance-Window-List
+branch: master
+playbook: playbooks/MaintenanceWindowList.yml

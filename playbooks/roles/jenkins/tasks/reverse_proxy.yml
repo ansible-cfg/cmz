@@ -1,0 +1,14 @@
+---
+
+- name: copy the apache reverse proxy file
+  template:
+    src: rev_proxy.conf.j2
+    dest: /etc/httpd/conf.d/rev_proxy.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart_httpd
+
+- name: Check the apache config
+  command: /usr/sbin/apachectl configtest
+  changed_when: false

@@ -1,0 +1,8 @@
+---
+
+tomcat_java_home: '/usr/java/jdk1.8.0_144/jre'
+tomcat_java_opts: "-Xms5825m -Xmx5825m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+DisableExplicitGC -Djava.security.egd=file:///dev/urandom"
+tomcat_logdir: /opt/tomcat/logs
+tomcat_version: "8.5.24"
+tomcat_fullname: "apache-tomcat-{{tomcat_version}}"
+tomcat_installation_file: "{{tomcat_fullname}}.tar.gz"

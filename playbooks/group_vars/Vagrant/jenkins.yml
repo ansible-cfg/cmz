@@ -1,0 +1,9 @@
+---
+
+jenkins_ad_domain: ""
+jenkins_ad_servers: ""
+
+defined_in_vault.yml:
+  - jenkins_bind_dn
+  - jenkins_bind_passwd
+

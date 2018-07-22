@@ -1,0 +1,18 @@
+---
+
+- name: Apache config for a loadbalancing reverse proxy
+  template:
+    src: hCS_reverse_proxy.conf.j2
+    dest: /etc/httpd/conf.d/hCS_reverse_proxy.conf
+    mode: 0644
+  notify: restart httpd
+
+- name: Change log format
+  replace:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: 'LogFormat(.*)combined$'
+    replace: 'LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" X-Forwarded-For: %{X-Forwarded-For}i Backend-time: %{msec}T " combined'
+  notify: reload httpd
+
+- name: Check the apache config
+  command: /usr/sbin/apachectl configtest

@@ -1,0 +1,13 @@
+---
+
+project: Maintenance-Window-Set
+branch: master
+playbook: playbooks/MaintenanceWindowSet.yml
+parameters:
+  - maintenance_id
+  - maintenance_description
+  - maintenance_tag_env
+  - maintenance_tag_role
+  - maintenance_begin
+  - maintenance_end
+  - maintenance_tz

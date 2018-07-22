@@ -1,0 +1,39 @@
+LogFormat "%v %h %t \"%r\"; Cookies set by Backend: \"%{Set-Cookie}o\"; Stickyness cookie: %{BALANCER_SESSION_STICKY}e; Route from request: %{BALANCER_SESSION_ROUTE}e; Balancer used: %{BALANCER_NAME}e; Worker to be used: %{BALANCER_WORKER_ROUTE}e;  BALANCER_ROUTE_CHANGED: %{BALANCER_ROUTE_CHANGED}e" StickySessionDebug
+
+{% for type, config in rev_proxy_config_backend.iteritems() %}
+{% if type != "rdk" %} {# Rundeck does not get Requests via the reverse proxies as of Oct 2017 #}
+<VirtualHost *:80>
+    Servername "{{loadbalanced_url[type]['fqdn']}}"
+{% if config.backend_protocol | lower == "https" %}
+    # HTTPS
+    SSLProxyEngine on
+{#  TODO: Remove the following SSL lines when CSESRE-769 is done #}
+    SSLProxyVerify none
+    SSLProxyCheckPeerCN off
+    SSLProxyCheckPeerName off
+    SSLProxyCheckPeerExpire off
+{% endif %}
+    # Load balancing
+    ProxyRequests Off
+    ProxyPass / balancer://{{type}}/
+    ProxyPassReverse / balancer://{{type}}/
+    <Proxy balancer://{{type}}>
+{% for host in groups[config.backend_inventory_group] %}
+{% if '-001' in host %}{# no HA as of Oct 2017: we only use one backend host #}
+        BalancerMember {{config.backend_protocol}}://{{host}}:{{config.backend_port}} connectiontimeout=5 timeout=30{% if config.sticky_session %} route={{type}}{{loop.index}}{% endif %}
+
+{# The above empty newline is required beacuse Jinja do not put newlines at the end of 'if' and 'for' statements, comments etc. #}
+{# TODO: Use {%+ to force newline when we start using the proper Jinja version. #}
+{% endif %}
+{% endfor %}
+{% if config.sticky_session %}
+        ProxySet stickysession=JSESSIONID
+{% endif %}
+    </Proxy>
+    ErrorLog "logs/{{type}}_error_log"
+    LogLevel info
+    CustomLog "logs/{{type}}_access_log" combined
+</VirtualHost>
+
+{% endif %}
+{% endfor %}

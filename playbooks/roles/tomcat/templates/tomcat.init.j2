@@ -1,0 +1,110 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          tomcat
+# Required-Start:    $local_fs $remote_fs $network
+# Required-Stop:     $local_fs $remote_fs $network
+# Should-Start:      $named
+# Should-Stop:       $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start Tomcat
+# Description:       Start the Tomcat servlet engine
+### END INIT INFO
+export CATALINA_BASE="/opt/tomcat"
+export CATALINA_HOME="/opt/tomcat"
+export CATALINA_PID=$CATALINA_BASE/tomcat.pid
+export JAVA_HOME=$(echo $(readlink -f `which java` | sed "s:\/bin\/java::"))
+export TOMCAT_OWNER="tomcat"
+export JAVA_OPTS="{{tomcat_java_opts}}"
+export CATALINA_OUT="$CATALINA_BASE/logs/console.log"
+# JMX VARIABLES
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.access.file=$CATALINA_BASE/conf/jmxremote.access"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.password.file=$CATALINA_BASE/conf/jmxremote.password"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.port=9003"
+export CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote.rmi.port=9004"
+
+RUNAS=$TOMCAT_OWNER
+
+# verify the specified run as user exists
+runas_uid=`id -u $RUNAS`
+if [ $? -ne 0 ]; then
+  echo "User $RUNAS not found! Please create the $RUNAS user before running this script."
+  exit 1
+fi
+
+# Resolve the location of the 'id' command
+IDEXE="/usr/xpg4/bin/id"
+if [ ! -x "$IDEXE" ]; then
+  IDEXE="/usr/bin/id"
+  if [ ! -x "$IDEXE" ]; then
+    eval echo `gettext 'Unable to locate "id".'`
+    eval echo `gettext 'Please report this message along with the location of the command on your system.'`
+    exit 1
+  fi
+  if [ "`$IDEXE -u -n`" = "$RUNAS" ]; then
+    # Already running as the configured user.  Avoid password prompts by not calling su.
+    RUNAS=""
+  fi
+fi
+
+start() {
+  echo "Starting tomcat: "
+  if [ -n "$RUNAS" ]; then
+    su $TOMCAT_OWNER -c $CATALINA_HOME/bin/startup.sh
+  else
+    $CATALINA_HOME/bin/startup.sh
+  fi
+}
+
+stop() {
+   echo "Stopping tomcat: "
+   if [ -n "$RUNAS" ]; then
+     su $TOMCAT_OWNER -c "$CATALINA_HOME/bin/shutdown.sh -force"
+   else
+     $CATALINA_HOME/bin/shutdown.sh -force
+   fi
+}
+
+status() {
+     if [ -f "$CATALINA_PID" ]; then
+          if [ -s "$CATALINA_PID" ]; then
+               if [ -r "$CATALINA_PID" ]; then
+                    PID=`cat "$CATALINA_PID"`
+                    ps -p $PID >/dev/null 2>&1
+                    if [ $? -eq 0 ] ; then
+                         echo "Tomcat is running with PID $PID."
+                    else
+                         echo "Tomcat is not running."
+                    fi
+               else
+                    echo "Tomcat is not running."
+               fi
+          else
+               echo "Tomcat is not running."
+          fi
+     else
+          echo "Tomcat is not running."
+     fi
+}
+##
+case "$1" in
+start)
+  start
+   ;;
+stop)
+   stop
+   ;;
+restart)
+   stop
+   start
+   ;;
+status)
+   status
+   ;;
+*)
+   echo $"Usage: tomcat {start|stop|restart|status}"
+   exit
+esac

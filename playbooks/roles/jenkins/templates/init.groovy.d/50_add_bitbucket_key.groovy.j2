@@ -1,0 +1,32 @@
+import jenkins.model.Jenkins
+import com.cloudbees.plugins.credentials.*
+import com.cloudbees.plugins.credentials.common.*
+import com.cloudbees.plugins.credentials.domains.*
+import com.cloudbees.plugins.credentials.impl.*
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.*
+import java.util.logging.Logger
+
+def logger = Logger.getLogger("")
+logger.info("Start of " + this.class.getName())
+
+try {
+    store = Jenkins.instance.getExtensionList('com.cloudbees.plugins.credentials.SystemCredentialsProvider')[0].getStore()
+
+    // ssh key for mgmtzone_automation scm
+    credentials = new BasicSSHUserPrivateKey(
+                                    CredentialsScope.GLOBAL,
+                                    "bitbucket_ssh_key",
+                                    "git",
+                                    new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource(
+                                    """{{svc_users_vault_sshkey_scm_privateKey}}"""),
+                                    "",
+                                    "Bitbucket SSH Key"
+                                    )
+
+    store.addCredentials(Domain.global(), credentials)
+
+} catch(Exception ex) {
+    logger.info("Catching the exception: " + ex)
+}
+
+logger.info("End of " + this.class.getName())

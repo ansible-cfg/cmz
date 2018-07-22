@@ -1,0 +1,10 @@
+---
+
+- hosts: Portal
+
+  become: true
+
+  roles:
+    - os_packages
+    - user_management
+    - PortalServer

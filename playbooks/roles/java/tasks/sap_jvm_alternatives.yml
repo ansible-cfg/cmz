@@ -1,0 +1,23 @@
+---
+
+- name: Set up Alternatives
+  alternatives:
+    name: "{{item}}"
+    link: /usr/bin/{{item}}
+    path: /usr/java/sapjvm_{{java_version}}/bin/{{item}}
+  with_items:
+    - java
+    - javac
+    - jmap
+    - jstack
+    - jar
+    - jps
+    - keytool
+  become: true
+
+- name: Install profiles.d java script
+  template:
+    src: sap_java_home.sh.j2
+    dest: /etc/profile.d/sap_java_home.sh
+    mode: 0755
+  become: true

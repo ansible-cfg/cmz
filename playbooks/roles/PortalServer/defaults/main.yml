@@ -1,0 +1,5 @@
+---
+
+git_clone_dir: "/opt/automation"
+middleware_dir: "{{git_clone_dir}}/ansiblemiddleware"
+ansible_install_dir: "{{middleware_dir}}/ansible"

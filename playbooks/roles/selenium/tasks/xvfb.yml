@@ -1,0 +1,16 @@
+---
+
+- name: Install Xvfb systemd configuration
+  template:
+    src: templates/xvfb.service.j2
+    dest: "{{selenium_systemd_conf_dir}}/xvfb.service"
+    mode: 0644
+    backup: true
+  notify: restart_xvfb
+
+- name: "Enable and start Xvfb in systemd"
+  systemd:
+    name: xvfb
+    enabled: true
+    daemon_reload: true
+    state: started

@@ -1,0 +1,16 @@
+---
+
+# variables for all envs of the Rot datacenter
+
+# Do not use these directly, use dc.id, dc.name etc.
+_dc_id: "mo2"
+_dc_name: "Moscow"
+
+service_user: "svc_mo2ansible"
+service_user_group: "svc_mo2ansible"
+
+internet_proxy_host: "proxy-mo2.ycs.io"
+internet_proxy_port: "3128"
+internet_proxy: "http://{{internet_proxy_host}}:{{internet_proxy_port}}"
+
+mailserver: "???"

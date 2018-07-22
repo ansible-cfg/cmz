@@ -1,0 +1,22 @@
+---
+
+- name: create init.groovy.d
+  file:
+    path: "{{jenkins_groovy_dir}}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: 0750
+
+- name: copy the jenkins groovy templates
+  template: 
+    src: "{{item}}"
+    dest: "{{jenkins_groovy_dir}}/{{item | basename | regex_replace('\\.j2$','')}}"
+    owner: jenkins
+    group: jenkins
+    mode: 0640
+  with_fileglob:
+    - ../templates/init.groovy.d/*.j2
+  when: (item | basename not in jenkins_groovy_ad) or
+        ('Vagrant' not in group_names and 'CCloud' not in group_names)
+  notify: restart_jenkins

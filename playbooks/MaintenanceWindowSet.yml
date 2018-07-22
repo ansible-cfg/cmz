@@ -1,0 +1,20 @@
+---
+
+- name: set maintenance window
+  hosts: Control
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: set a maintenance window in Dynatrace
+    dynatrace_maintenance_window:
+      api_url: "{{dynatrace_api_url}}"
+      api_token: "{{dynatrace_api_maintenance_token}}"
+      command: set
+      id: "{{maintenance_id}}"
+      description: "{{maintenance_description}}"
+      tags: [ "CMZ", "[Environment]env:{{maintenance_tag_env}}", "[Environment]role:{{maintenance_tag_role}}" ]
+      begin_time: "{{maintenance_begin}}"
+      end_time: "{{maintenance_end}}"
+      timezone: "{{maintenance_tz}}"
+    environment:
+      https_proxy: "{{ internet_proxy }}"

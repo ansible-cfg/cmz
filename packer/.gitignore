@@ -1,0 +1,9 @@
+.DS_Store
+packer_cache/*
+*.box
+iso/*
+output-virtualbox-iso/*
+.vagrant/*
+*.iso
+http/id_rsa
+http/id_rsa.pub

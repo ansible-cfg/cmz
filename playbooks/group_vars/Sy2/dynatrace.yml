@@ -1,0 +1,14 @@
+---
+
+dynatrace_api_url: "https://fhz775.dynatrace-managed.com/e/893c8f33-afef-45ad-afad-ee3712454789/api/v1"
+
+#
+# Variables defined in the encrypted vault file ytr2config.vault.yml:
+# They are here for the sake of searchability:
+# See http://docs.ansible.com/ansible/2.4/playbooks_best_practices.html#best-practices-for-variables-and-vaults
+#
+# Use ./utils/checkVaultFileVarlist.sh to check for missing properties
+#
+
+defined_in_dynatrace.vault.yml:
+  - dynatrace_api_maintenance_token

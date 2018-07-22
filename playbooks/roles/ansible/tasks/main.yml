@@ -1,0 +1,19 @@
+---
+
+- name: Create Ansible logdir
+  file:
+    dest: "{{ansible_logdir}}"
+    state: directory
+    owner: "{{service_user}}"
+    group: "{{service_user_group}}"
+    mode: 0770
+  become: true
+
+- name: Set logrotate for Ansible logdir
+  template:
+    src: templates/logrotation.conf.j2
+    dest: /etc/logrotate.d/control  # Name is 'control' for historical reasons, should be 'ansible'
+    backup: true
+    owner: root
+    group: root
+  become: true

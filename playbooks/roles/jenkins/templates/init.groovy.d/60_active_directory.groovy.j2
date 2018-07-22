@@ -1,0 +1,27 @@
+//set Active Directory security realm
+
+import jenkins.model.*
+import hudson.security.*
+import hudson.plugins.active_directory.*
+import java.util.logging.Logger
+
+def logger = Logger.getLogger("")
+logger.info("Start of " + this.class.getName())
+
+try {
+    def instance = Jenkins.getInstance()
+
+    String domain = '{{jenkins_ad_domain}}'
+    String site = ''
+    String server = '{{jenkins_ad_servers}}'
+    String bindName = '{{jenkins_bind_dn}}'
+    String bindPassword = '{{jenkins_bind_passwd}}'
+
+    ad_realm = new ActiveDirectorySecurityRealm(domain, site, bindName, bindPassword, server)
+    instance.setSecurityRealm(ad_realm)
+    instance.save()
+} catch(Exception ex) {
+    logger.info("Catching the exception: " + ex)
+}
+
+logger.info("End of " + this.class.getName())

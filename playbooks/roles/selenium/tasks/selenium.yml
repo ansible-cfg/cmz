@@ -1,0 +1,54 @@
+---
+
+- name: install yum packages
+  yum:
+    name: "{{yum_packages}}"
+    state: present
+  when: yum_packages is defined
+
+- name: Create group for Selenium
+  group:
+    name: "{{selenium_group}}"
+    system: true
+    state: present
+
+- name: Create user for Selenium
+  user:
+    name: "{{selenium_user}}"
+    group: "{{selenium_group}}"
+    comment: "Selenium Server"
+    shell: /sbin/nologin
+    home: "{{selenium_base_dir}}"
+    system: true
+    state: present
+
+- name: "Create a selenium server directory under /opt if does not exist"
+  file:
+    path: "{{selenium_base_dir}}"
+    state: directory
+    mode: 0755
+    owner: "{{selenium_user}}"
+    group: "{{selenium_group}}"
+
+- name: "Download Standalone Selenium Server from repository"
+  get_url:
+    url: "{{selenium_download_url}}"
+    dest: "{{selenium_base_dir}}"
+    owner: "{{selenium_user}}"
+    group: "{{selenium_group}}"
+    mode: 0644
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+
+- name: "Install selenium server systemd configuration"
+  template:
+    src: templates/selenium-server.service.j2
+    dest: "{{selenium_systemd_conf_dir}}/selenium-server.service"
+    mode: 0644
+  notify: restart_selenium
+
+- name: "Enable & start selenium server"
+  systemd:
+    name: selenium-server
+    enabled: true
+    state: started
+    daemon_reload: true

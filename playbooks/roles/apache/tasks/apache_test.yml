@@ -1,0 +1,11 @@
+---
+
+- name: Ensure Required port is open
+  wait_for: host="{{inventory_hostname}}" port=80
+
+- name: Check website
+  uri:
+    url: "http://{{inventory_hostname}}"
+    validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+    return_content: true
+  ignore_errors: true

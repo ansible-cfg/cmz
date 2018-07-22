@@ -1,0 +1,13 @@
+---
+
+- name: restart_selenium
+  systemd:
+    name: selenium-server
+    state: restarted
+    daemon_reload: true
+  
+- name: restart_xvfb
+  systemd:
+    name: xvfb
+    state: restarted
+    daemon_reload: true

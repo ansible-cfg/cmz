@@ -1,0 +1,36 @@
+import jenkins.model.*;
+import hudson.model.*;
+import hudson.tasks.Shell;
+import javaposse.jobdsl.plugin.*;
+import java.util.logging.Logger;
+
+def logger = Logger.getLogger("")
+
+logger.info("Running seedjob creation groovy script")
+
+// If job exists, exit script
+try {
+  def folder = Jenkins.instance.getItem('SRE')
+  project = folder.createProject(FreeStyleProject.class, 'SeedJob')
+ } catch(Exception e){
+   logger.info("Exception on something occurred " + e)
+   return
+ }
+
+// Set git
+def repository = 'ssh://git@enterprise-stash.hybris.com:7999/hcs-pdo-sre/mgmtzone_automation.git'
+project.scm = new hudson.plugins.git.GitSCM(repository)
+project.scm.userRemoteConfigs[0].credentialsId = 'bitbucket_ssh_key'
+project.scm.branches[0].name = '*/master'
+
+// jobDSL parsing build step
+executeDslScripts = new ExecuteDslScripts()
+executeDslScripts.setTargets("jobdsl/*.groovy")
+executeDslScripts.setRemovedJobAction(RemovedJobAction.IGNORE)
+executeDslScripts.setRemovedViewAction(RemovedViewAction.IGNORE)
+executeDslScripts.setRemovedConfigFilesAction(RemovedConfigFilesAction.IGNORE)
+executeDslScripts.setLookupStrategy(LookupStrategy.SEED_JOB)
+
+project.getBuildersList().add(executeDslScripts)
+project.save()
+logger.info("End of seedjob creation groovy script")

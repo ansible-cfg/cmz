@@ -1,0 +1,33 @@
+---
+
+validate_certs: false
+
+loadbalancer: ddv-cmz-webpvip-001.ycommerce.ycsdev.io
+
+loadbalanced_url:
+  rdk:
+    fqdn: ddv-rdk-d.ycommerce.ycsdev.io
+  por:
+    fqdn: ddv-por-d.ycommerce.ycsdev.io
+  ytr:
+    fqdn: ddv-ytr-d.ycommerce.ycsdev.io
+  repo:
+    fqdn: ddv-repo-d.ycommerce.ycsdev.io
+  ctrl:
+    fqdn: ddv-ctrl-d.ycommerce.ycsdev.io
+
+ytr_nfs_server: ddv-cmz-ytrpst-001.ycommerce.ycsdev.io
+rdk_nfs_server: ddv-cmz-rdkpst-001.ycommerce.ycsdev.io
+
+cmdbadaptor_spring_datasource_url: jdbc:mysql://ddv-cmz-cmdbd-001.ycommerce.ycsdev.io:3306/portal_001?useUnicode=true&amp;characterEncoding=UTF-8
+middleware_portal_server_address: http://{{ansible_fqdn}}:8080
+middleware_rundeck_outbound_server_address: https://ddv-cmz-rdkd-001.ycommerce.ycsdev.io:4443
+
+
+jenkins_project_roles:
+  qa:
+    acl_name: "ACL-DDV-CMZJENKINS-QA"
+    pattern: "^(?:SRE|QA|DEV).*"
+  dev:
+    acl_name: "ACL-DDV-CMZJENKINS-DEV"
+    pattern: "^DEV.*"

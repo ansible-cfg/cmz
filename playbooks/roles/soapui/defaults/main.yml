@@ -1,0 +1,6 @@
+---
+
+soapui_download_url: https://s3.amazonaws.com/downloads.eviware/soapuios/5.4.0/SoapUI-5.4.0-linux-bin.tar.gz
+soapui_targz_path: /root/{{soapui_download_url|basename}}
+soapui_dir: /opt/SoapUI-5.4.0
+soapui_latest_dir: /opt/soapui

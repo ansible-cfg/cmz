@@ -1,0 +1,35 @@
+---
+
+- name: Check if the NFS mounted
+  command: "mountpoint -q '{{cmdb_backup_mount}}'"
+  changed_when: false
+
+- name: Create the Cmdb backup directory
+  file:
+    dest: "{{cmdb_backup_target_dir}}"
+    state: directory
+    owner: root
+    group: "{{service_user_group}}"
+    mode: 0775
+  become: true
+
+- name: Install the backup script
+  template:
+    src: CmdbBackup.sh.j2
+    dest: /usr/local/bin/CmdbBackup.sh
+    owner: "{{service_user}}"
+    group: "{{service_user_group}}"
+    mode: 0750
+
+# cronjob stored in /etc/cron.d/cmdb_backup
+- name: Create the cronjob for a regular backup
+  cron:
+    name: cmdb backup
+    weekday: "*"
+    minute: 42
+    hour: "*/4"
+    user: "{{service_user}}"
+    job: "/usr/local/bin/CmdbBackup.sh"
+    cron_file: cmdb_backup
+    state: present
+    #disabled: true

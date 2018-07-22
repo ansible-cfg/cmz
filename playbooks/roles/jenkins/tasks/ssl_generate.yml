@@ -1,0 +1,37 @@
+---
+
+# TODO: This should be a separate role to create the privkey / certificate,
+# when upgraded to ansible 2.4 it should be refactored as it has modules
+# to generate certificates. 
+# OR use the cert FreeIPA generated on the host?
+# OR delegate SSL to the loadbalancer?
+
+- name: install pyOpenSSL 
+  yum:
+    name: pyOpenSSL
+    state: present
+
+- name: create {{ssl_cert_privkey_path|dirname}}
+  file:
+    path: "{{ssl_cert_privkey_path|dirname}}"
+    state: directory
+    owner: apache
+    group: apache
+    mode: 0700
+
+- name: create the private key
+  openssl_privatekey:
+    path: "{{ssl_cert_privkey_path}}"
+  become_user: apache
+
+- name: generate CSR
+  command: "openssl req -new -sha256 -subj {{ssl_cert_fields}} -key {{ssl_cert_privkey_path}} -out {{ssl_cert_csr_path}}"
+  args:
+    creates: "{{ssl_cert_csr_path}}"
+  become_user: apache
+
+- name: generate self-signed SSL certificate
+  command: "openssl req -nodes -x509 -sha256 -days {{ssl_cert_days}} -in {{ssl_cert_csr_path}} -key {{ssl_cert_privkey_path}} -out {{ssl_cert_cert_path}} -extensions v3_ca"
+  args:
+    creates: "{{ssl_cert_cert_path}}"
+  become_user: apache

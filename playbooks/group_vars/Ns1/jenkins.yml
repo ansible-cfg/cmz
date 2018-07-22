@@ -1,0 +1,9 @@
+---
+
+jenkins_ad_domain: "ycs.io"
+jenkins_ad_servers: "ns1-inf-ads-001.ycs.io:3268,ns1-inf-ads-002.ycs.io:3268"
+
+defined_in_vault.yml:
+  - jenkins_bind_dn
+  - jenkins_bind_passwd
+

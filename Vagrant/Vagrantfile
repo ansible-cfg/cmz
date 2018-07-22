@@ -1,0 +1,79 @@
+# Syntax see: https://www.vagrantup.com/docs/vagrantfile/
+
+# Load the YAML config file
+require 'yaml'
+yaml_config = YAML.load_file('vagrant-cmz.yml')
+
+# Generate hosts config from YAML
+hosts_list = []
+yaml_config["server_list"].each do |servers|
+  hosts_list.push(servers["ipaddr"] + " " + servers["hostname"])
+end
+# Small shell script to add to /etc/hosts
+$provision = <<SCRIPT
+for iphost in '#{hosts_list.join("' '")}'; do grep "$iphost" /etc/hosts >/dev/null || echo $iphost >> /etc/hosts; done
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  config.ssh.insert_key = false # use default vagrant ssh key instead of generating separate ones
+  config.vm.boot_timeout = 60 # seconds
+  config.vm.synced_folder ".", "/vagrant", disabled: true # Disable synced folders by default, enable if needed only via config
+
+  # Add to /etc/hosts all the VM's in the YAML
+  config.vm.provision :shell, :inline => $provision
+
+  # Iterate through entries in YAML file, and create the VM's defined in server_list
+  yaml_config["server_list"].each do |servers|
+    config.vm.define servers["name"] do |srv|
+      srv.vm.box = yaml_config["defaults"]["box"]
+      srv.vm.box_download_checksum_type = yaml_config["defaults"]["box_checksum_type"]
+      srv.vm.box_download_checksum = yaml_config["defaults"]["box_checksum"]
+
+      srv.vm.hostname = servers["hostname"]
+      srv.vm.network "private_network", ip: servers["ipaddr"]
+
+      # Setup portforward if specified
+      if servers["portforward"] != nil
+        servers["portforward"].each do |portforwards|
+          srv.vm.network "forwarded_port", "guest": portforwards["guest"], "host": portforwards["host"]
+        end
+      end
+
+      # Set the VM processor + RAM
+      srv.vm.provider :virtualbox do |vb|
+        if servers["cpu"] == nil
+          vb.cpus = yaml_config["defaults"]["cpu"]
+        else
+          vb.cpus = servers["cpu"]
+        end
+        if servers["memory"] == nil
+          vb.memory = yaml_config["defaults"]["memory"]
+        else
+          vb.memory = servers["memory"]
+        end
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      
+      # Run file provisioner if "file" is specified
+      if servers["file"] != nil
+        servers["file"].each do |files|
+          srv.vm.provision "file", "source": files["src"], "destination": files["dest"]
+        end
+      end
+
+      # Run shell provider if external shell scripts are specified
+      if servers["shell"] != nil
+        servers["shell"].each do |scriptpath|
+          srv.vm.provision "shell", "path": scriptpath
+        end
+      end
+
+      # Mount host folder if specified in YAML, currently only one folder can be specified
+      if servers["synced_folder"] != nil
+        srv.vm.synced_folder servers["synced_folder"]["src"], servers["synced_folder"]["dest"]
+      end
+
+    end
+  end
+end

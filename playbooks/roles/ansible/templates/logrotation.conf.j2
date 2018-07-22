@@ -1,0 +1,13 @@
+#
+# {{ansible_managed}}
+#
+{{ansible_logdir}}/*.log {
+    su {{service_user}} {{service_user_group}}
+    daily
+    compress
+    missingok
+    notifempty
+    rotate 30
+    copytruncate
+    create 0664 {{service_user}} {{service_user_group}}
+}

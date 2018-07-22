@@ -1,0 +1,126 @@
+---
+
+defaults:
+  box: "csesre/centos74-20180516"
+  box_checksum_type: "sha256"
+  box_checksum: "74e15a06d37301545b13dcb0a62fce8c81fe261ffeb9427c400abe9b1f67f738"
+  cpu: 1
+  memory: 512
+
+
+server_list:
+  - name: ctrl_001
+    hostname: vagrant-cmz-ctrlp-001.local
+    ipaddr: "192.168.42.16"
+    memory: 2048
+    file:
+      - ssh_key:
+        src: "./VagrantInsecurePrivateKey"
+        dest: "/home/vagrant/.ssh/id_rsa"
+      - ssh_key2:
+        src: "./VagrantInsecurePrivateKey"
+        dest: "/home/vagrant/.ssh/id_rsa2"
+    shell:
+      - "../utils/ssh_permissions.sh"
+      - "../utils/installAnsible.sh"
+      - "../utils/vagrant_cd_git_on_login.sh"
+    synced_folder:
+      src: "../.."
+      dest: "/home/vagrant/git_hcs-pdo-sre"
+    portforward:
+      - jenkins:
+        guest: 80
+        host: 16080
+      - jenkins_ssl:
+        guest: 443
+        host: 16443
+
+
+  - name: repo_001
+    hostname: vagrant-cmz-repop-001.local
+    ipaddr: "192.168.42.15"
+    file:
+      - targz:
+        src: "./VagrantRepoServerResources.tar"
+        dest: "/vagrant/VagrantRepoServerResources.tar"
+    shell:
+      - "../utils/installVagrantRepoServerResources.sh"
+    synced_folder:
+      src: "./"
+      dest: "/vagrant"
+    portforward:
+      - apache:
+        guest: 80
+        host: 15080
+
+
+  - name: cmdb_001
+    hostname: vagrant-cmz-cmdbp-001.local
+    ipaddr: "192.168.42.10"
+    portforward:
+      - mysql:
+        guest: 3306
+        host: 30000
+        
+
+  - name: rdk_001
+    hostname: vagrant-cmz-rdkp-001.local
+    memory: 1024
+    ipaddr: "192.168.42.11"
+    portforward:
+      - rdk:
+        guest: 80
+        host: 11080
+      - rdk_ssl:
+        guest: 443
+        host: 11443
+
+
+  - name: por_001
+    hostname: vagrant-cmz-porp-001.local
+    memory: 1024
+    ipaddr: "192.168.42.12"
+    portforward:
+      - portal:
+        guest: 8080
+        host: 12080
+
+
+  - name: por_002
+    hostname: vagrant-cmz-porp-002.local
+    memory: 1024
+    ipaddr: "192.168.42.22"
+    portforward:
+      - portal:
+        guest: 8080
+        host: 22080
+
+
+  - name: ytr_001
+    hostname: vagrant-cmz-ytrp-001.local
+    memory: 1024
+    ipaddr: "192.168.42.13"
+    portforward:
+      - ytr:
+        guest: 8443
+        host: 13443
+
+  - name: ytr_002
+    hostname: vagrant-cmz-ytrp-002.local
+    memory: 1024
+    ipaddr: "192.168.42.23"
+    portforward:
+      - ytr:
+        guest: 8443
+        host: 23443
+
+  - name: web_001
+    hostname: vagrant-cmz-webp-001.local
+    ipaddr: "192.168.42.14"
+    portforward:
+      - web:
+        guest: 80
+        host: 8080
+      - web_ssl:
+        guest: 443
+        host: 8443  

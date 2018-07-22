@@ -1,0 +1,51 @@
+---
+
+- name: "Get {{soapui_download_url}}"
+  get_url:
+    url: "{{soapui_download_url}}"
+    dest: "{{soapui_targz_path}}"
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: "Unpack SoapUI"
+  unarchive:
+    src: "{{soapui_targz_path}}"
+    remote_src: true
+    dest: "/opt"
+    owner: soapui
+    group: soapui
+    creates: "{{soapui_dir}}"
+
+- name: "Create SoapUI symlink to /opt/soapui"
+  file:
+    src: "{{soapui_dir}}"
+    dest: "{{soapui_latest_dir}}"
+    state: link
+    owner: soapui
+    group: soapui
+
+# SoapUI files are symlinked to /usr/bin to be available from Jenkins shell
+- name: "Link testrunner.sh to /usr/bin"
+  file:
+    src: "{{soapui_latest_dir}}/bin/testrunner.sh"
+    dest: /usr/bin/testrunner.sh
+    state: link
+    owner: root
+    group: root
+
+- name: "Link securitytestrunner.sh to /usr/bin"
+  file:
+    src: "{{soapui_latest_dir}}/bin/securitytestrunner.sh"
+    dest: /usr/bin/securitytestrunner.sh
+    state: link
+    owner: root
+    group: root
+
+- name: "Link loadtestrunner.sh to /usr/bin"
+  file:
+    src: "{{soapui_latest_dir}}/bin/loadtestrunner.sh"
+    dest: /usr/bin/loadtestrunner.sh
+    state: link
+    owner: root
+    group: root

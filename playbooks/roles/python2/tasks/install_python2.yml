@@ -1,0 +1,6 @@
+---
+
+- name: Install Python2
+  package:
+    name: python2
+    state: installed

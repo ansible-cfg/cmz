@@ -1,0 +1,31 @@
+---
+- name: Create path for ssh key {{item.value.privkey_path | default('/home/'+item.key+'/.ssh/id_rsa')}}
+  file:
+    path: /home/{{item.key}}/.ssh
+    state: directory
+    owner: "{{item.value.privkey_owner_group | default(item.key)}}"
+    group: "{{item.value.privkey_owner_group | default(item.key)}}"
+    mode: "0700"
+
+- name: Install private ssh key {{item.value.privkey_path | default('/home/'+item.key+'/.ssh/id_rsa')}}
+  copy:
+    content: "{{item.value.privkey}}"
+    dest: "{{item.value.privkey_path | default('/home/'+item.key+'/.ssh/id_rsa')}}"
+    owner: "{{item.value.privkey_owner_group | default(item.key)}}"
+    group: "{{item.value.privkey_owner_group | default(item.key)}}"
+    mode: "0600"
+    directory_mode: "0700"
+  when: (item.value.privkey_ansible_grps | intersect(group_names) | length) > 0
+
+- name: Install public ssh key (to) {{item.value.pubkey_file | default('/home/'+item.key+'/.ssh/authorized_keys')}}
+  lineinfile:
+    path: "{{item.value.pubkey_file | default('/home/'+item.key+'/.ssh/authorized_keys')}}"
+    line: "{{item.value.pubkey}}"
+    regexp: "{{item.value.pubkey | regex_escape()}}"
+    state: present
+    create: true
+    owner: "{{item.value.privkey_owner_group | default(item.key)}}"
+    group: "{{item.value.privkey_owner_group | default(item.key)}}"
+    mode: "0600"
+  when: (item.value.pubkey_ansible_grps | intersect(group_names) | length) > 0
+

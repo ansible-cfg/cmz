@@ -1,0 +1,8 @@
+---
+
+jenkins_ad_domain: "ycsdev.io"
+jenkins_ad_servers: "bo2-inf-ads-001.ycsdev.io:3268,bo2-inf-ads-002.ycsdev.io:3268"
+
+defined_in_vault.yml:
+  - jenkins_bind_dn
+  - jenkins_bind_passwd

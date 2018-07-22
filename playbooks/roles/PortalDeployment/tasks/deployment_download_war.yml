@@ -1,0 +1,23 @@
+---
+
+- name: Remove the local tempdir {{deploy_vars.tempdir}} for storing the properties template
+  file:
+    dest: "{{deploy_vars.tempdir}}"
+    state: absent
+
+- name: Create the local tempdir {{deploy_vars.tempdir}} for storing the properties template
+  file:
+    dest: "{{deploy_vars.tempdir}}"
+    state: directory
+    mode: "0755"
+
+- name: Downloading {{deploy_vars.url}} to the local control machine to {{deploy_vars.tempdir}}/{{deploy_vars.jarch}}
+  shell: |
+    curl --verbose --insecure --user '{{vault_artifactory_user}}:{{vault_artifactory_password}}' \
+    '{{deploy_vars.url}}' --output "{{deploy_vars.tempdir}}/{{deploy_vars.jarch}}"
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Extract the property template from {{deploy_vars.tempdir}}/{{deploy_vars.jarch}}
+  command: unzip -o -j "{{deploy_vars.tempdir}}/{{deploy_vars.jarch}}" 'WEB-INF/classes/application.properties' -d {{deploy_vars.tempdir}}

@@ -1,0 +1,115 @@
+---
+
+- name: Create the Portal base directory
+  file:
+    dest: "{{git_clone_dir}}"
+    state: directory
+    owner: tomcat
+    group: "{{service_user_group}}"
+    mode: "0775"
+
+- name: Create directory envs directory
+  file:
+    dest: "{{git_clone_dir}}/repository/envs"
+    state: directory
+    owner: tomcat
+    group: "{{service_user_group}}"
+    mode: "0775"
+
+- name: Create directory customers directory
+  file:
+    dest: "{{git_clone_dir}}/repository/customers"
+    state: directory
+    owner: tomcat
+    group: "{{service_user_group}}"
+    mode: "0775"
+
+- name: Tomcat webapps context.yml
+  copy:
+    src: files/tomcat_webapps_context.xml
+    dest: /opt/tomcat/webapps/manager/META-INF/context.xml
+    owner: tomcat
+    group: tomcat
+    mode: "0644"
+
+- name: Tomcat context.yml
+  copy:
+    src: files/tomcat_context.xml
+    dest: /opt/tomcat/conf/context.xml
+    owner: tomcat
+    group: tomcat
+    mode: "0644"
+
+- name: Tomcat manager-gui user
+  blockinfile:
+    path: /opt/tomcat/conf/tomcat-users.xml
+    block: |
+      <role rolename="manager-gui"/>
+      <user username="{{vault_tomcat_manager_gui_user}}" password="{{vault_tomcat_manager_gui_password}}" roles="manager-gui"/>
+    insertbefore: "</tomcat-users>"
+    marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+    owner: tomcat
+    group: tomcat
+
+- name: Create Tomcat ssh config dir
+  file:
+    dest: /home/tomcat/.ssh
+    state: directory
+    owner: tomcat
+    group: tomcat
+    mode: 0750
+
+- name: Create /opt/automation/master-config/middleware/{{item}}
+  file:
+    dest: "/opt/automation/master-config/middleware/{{item}}"
+    state: directory
+    owner: "tomcat"
+    group: "tomcat"
+    mode: 0755
+  with_items:
+    - srvc_JeDNUd
+    - '{{middleware_ssh_user}}'
+    - '{{middleware_ansible_ssh_user}}'
+
+- name: Make the Portal service user key available for Tomcat
+  copy:
+    remote_src: true
+    src: /home/{{middleware_ssh_user}}/.ssh/id_rsa
+    dest: /opt/automation/master-config/middleware/{{item}}
+    owner: tomcat
+    group: tomcat
+    mode: 0400
+  with_items:
+    - '{{middleware_ssh_user}}'
+    - '{{middleware_ansible_ssh_user}}' 
+
+- name: Add the ssh key for middleware accessing enterprise-stash
+  copy:
+    content: "{{svc_users_vault_srvc_JeDNUd_putty_privateKey}}"
+    dest: /opt/automation/master-config/middleware/srvc_JeDNUd/id_rsa.ppk
+    owner: tomcat
+    group: tomcat
+    mode: 0400
+
+- include: "middleware.yml"
+  static: true
+  force_handlers: true
+  tags: middleware
+
+- name: Create logdirs
+  file:
+    dest: "/var/log/automation/{{item}}"
+    state: directory
+    owner: tomcat
+    group: tomcat
+    mode: 0755
+  with_items:
+    - [ 'portal', 'cmdb-adaptor', 'middleware' ]
+
+- name: logrotation
+  template:
+    src: templates/logrotation.conf.j2
+    dest: /etc/logrotate.d/portal
+    backup: true
+    owner: root
+    group: root

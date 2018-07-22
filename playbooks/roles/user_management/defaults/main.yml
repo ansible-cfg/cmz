@@ -1,0 +1,40 @@
+---
+
+# these service_users exclusively go to our test envirnoments, e.g. Ansible, CCloud machines
+# THEY MUST NOT GOT GO TO DATACENTERS MAINTAINED BY THE INFRA TEAM.
+
+service_users:
+  svc_ansible:
+    comment: "Service user for management zone provisioning and deployment"
+    # unix groups membership:
+    groups: []
+    # False/empty: no sudo for the user; Value: there is a sudo Ansible template
+    sudo_config: "files/svc_ansible"
+    privkey: "{{svc_users_vault_svc_ansible_privateKey}}"
+    # Ansible host groups where the user's account is created (incl. private ssh key):
+    privkey_ansible_grps: ["Control"]
+    pubkey: "{{svc_users_vault_svc_ansible_publicKey}}"
+    # Ansible host groups where the user's account is created (incl. public ssh key):
+    # TODO: create a group called "ManagementZone" and use that
+    pubkey_ansible_grps: ["all"]
+
+  svc_ytr:
+    comment: "yTR2 Service user"
+    groups: []
+    sudo_config: "files/svc_ytr"
+    privkey: "{{svc_users_vault_svc_ytr_privateKey}}"
+    privkey_ansible_grps: ["yTestRunner"]
+    pubkey: "{{svc_users_vault_svc_ytr_publicKey}}"
+    pubkey_ansible_grps: []
+
+# ssh keys for CMDB backups and git access for the Ansible service user.
+# These keys go into the Ansible service users's HOME/.ssh/
+svc_ansible_additional_keys:
+  sshkey_scm:
+    privkey: "{{svc_users_vault_sshkey_scm_privateKey}}"
+    privkey_path: "/home/{{service_user}}/.ssh/id_rsa_sshkey_scm"
+    privkey_owner_group: "{{service_user}}"
+    privkey_ansible_grps: ["Control", "Portal"]
+    pubkey: "{{svc_users_vault_sshkey_scm_publicKey}}"
+    pubkey_file: "/home/{{service_user}}/.ssh/authorized_keys"
+    pubkey_ansible_grps: []

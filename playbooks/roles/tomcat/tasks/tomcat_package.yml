@@ -1,0 +1,29 @@
+---
+
+- name: Check if we need to get the Tomcat packages from the repo server
+  command: "ls /tmp/ansible_tempdir/tomcat/{{tomcat_installation_file}}"
+  register: need_tomcat_packages
+  ignore_errors: true
+  failed_when: false
+  changed_when: false
+
+#- debug:
+#    var: need_tomcat_packages
+
+- block:
+  - name: Create Ansible temp dir for Tomcat package download
+    file:
+      dest: /tmp/ansible_tempdir/tomcat
+      state: directory
+      owner: "{{service_user}}"
+      group: "{{service_user_group}}"
+      mode: 0755
+
+  - name: Get the Tomcat package bundle from the repo server
+    get_url:
+      url: "http://{{repo_server}}/tomcat/{{tomcat_installation_file}}"
+      dest: /tmp/ansible_tempdir/tomcat/{{tomcat_installation_file}}
+      use_proxy: false
+      validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+
+  when: need_tomcat_packages.rc != 0

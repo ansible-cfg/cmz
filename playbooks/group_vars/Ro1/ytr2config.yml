@@ -1,0 +1,15 @@
+---
+
+ytestrunner2_customer_plugin_urls:
+  - https://repository.hybris.com/hcs-snapshot/com/hybris/cs/pqe/ytr2bizer/develop-SNAPSHOT/ytr2bizer-develop-SNAPSHOT.jar
+
+#
+# Variables defined in the encrypted vault file ytr2config.vault.yml:
+# They are here for the sake of searchability:
+# See http://docs.ansible.com/ansible/2.4/playbooks_best_practices.html#best-practices-for-variables-and-vaults
+#
+# Use ./utils/checkVaultFileVarlist.sh to check for missing properties
+#
+
+defined_in_ytr2config.vault.yml:
+  - ytr2config_keyfiles_properties_serviceuser_name

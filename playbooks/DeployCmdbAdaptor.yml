@@ -1,0 +1,15 @@
+---
+
+- hosts: Portal
+
+  become: true
+
+  vars_files:
+    - roles/PortalDeployment/defaults/main.yml
+
+  roles:
+    - {
+        role: PortalDeployment,
+        deployment_vars: "{{cmdbadaptor}}",
+        tags: deploy_cmdbadaptor
+      }

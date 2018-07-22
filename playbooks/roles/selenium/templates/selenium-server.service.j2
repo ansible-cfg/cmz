@@ -1,0 +1,18 @@
+[Unit]
+Description=Selenium Standalone Server
+After=network.target
+
+[Service]
+Type=simple
+Environment=DISPLAY=:13
+ExecStart=/usr/bin/java -jar {{selenium_base_dir}}/{{selenium_jar_file}} -Djava.security.egd=file:/dev/urandom
+LimitNOFILE=10000
+WorkingDirectory={{selenium_base_dir}}
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+User={{selenium_user}}
+Group={{selenium_group}}
+
+[Install]
+WantedBy=multi-user.target

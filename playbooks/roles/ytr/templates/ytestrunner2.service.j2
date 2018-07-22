@@ -1,0 +1,25 @@
+# THC yTR2 systemd unit file
+# Author: Piotr Matuszczyk <piotr.matuszczyk@sap.com>
+# ver: 1.0
+#
+[Unit]
+Description=yTR2 Standalone Server
+After=network.target syslog.target
+
+[Service]
+Type=forking
+ExecStart={{ytestrunner2_basedir}}/ytestrunner2.sh
+ExecStop=/usr/bin/pkill --pidfile {{ytestrunner2_basedir}}/ytestrunner2.pid
+PIDFile={{ytestrunner2_basedir}}/ytestrunner2.pid
+LimitNOFILE=8000
+WorkingDirectory={{ytestrunner2_basedir}}
+KillMode=process
+Restart=on-failure
+User={{ytestrunner2_user}}
+Group={{ytestrunner2_group}}
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ytestrunner2
+
+[Install]
+WantedBy=multi-user.target

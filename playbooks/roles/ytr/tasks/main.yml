@@ -1,0 +1,30 @@
+---
+
+- include: rollback_ytr2_check.yml
+  tags: rollback_ytr2
+  when: ytestrunner2_rollback
+
+- include: stop_ytr2.yml
+  tags: deploy_ytr2, rollback_ytr2
+
+- include: rollback_ytr2.yml
+  tags: rollback_ytr2
+  when: ytestrunner2_rollback
+
+- include: backup_ytr2.yml
+  tags: deploy_ytr2
+
+- include: remove_current_installation.yml
+  tags: deploy_ytr2
+
+- include: create_ytr2_structure.yml
+  tags: deploy_ytr2
+
+- include: install_ytr2.yml
+  tags: deploy_ytr2
+
+- include: start_ytr2.yml
+  tags: deploy_ytr2, rollback_ytr2
+
+- include: ytrtests.yml
+  tags: test_ytr2, rollback_ytr2

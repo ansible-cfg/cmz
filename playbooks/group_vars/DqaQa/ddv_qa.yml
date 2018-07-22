@@ -1,0 +1,22 @@
+---
+
+loadbalancer: dqa-cmz-webpvip-001.ycommerce.ycsdev.io
+
+loadbalanced_url:
+  rdk:
+    fqdn: dqa-rdk-q.ycommerce.ycsdev.io
+  por:
+    fqdn: dqa-por-q.ycommerce.ycsdev.io
+  ytr:
+    fqdn: dqa-ytr-q.ycommerce.ycsdev.io
+  repo:
+    fqdn: dqa-repo-q.ycommerce.ycsdev.io
+  ctrl:
+    fqdn: dqa-ctrl-q.ycommerce.ycsdev.io
+
+ytr_nfs_server: dqa-cmz-ytrpst-001.ycommerce.ycsdev.io
+rdk_nfs_server: dqa-cmz-rdkpst-001.ycommerce.ycsdev.io
+
+cmdbadaptor_spring_datasource_url: jdbc:mysql://dqa-cmz-cmdbq-001.ycommerce.ycsdev.io:3306/portal_001?useUnicode=true&amp;characterEncoding=UTF-8
+middleware_portal_server_address: http://{{ansible_fqdn}}:8080
+middleware_rundeck_outbound_server_address: https://dqa-cmz-rdkq-001.ycommerce.ycsdev.io:4443

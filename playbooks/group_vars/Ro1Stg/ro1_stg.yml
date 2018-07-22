@@ -1,0 +1,22 @@
+---
+
+loadbalancer: ro1-cmz-webdvis-001.ycommerce.ycs.io
+
+loadbalanced_url:
+  rdk:
+    fqdn: ro1-rdk-s.ycommerce.ycs.io
+  por:
+    fqdn: ro1-por-s.ycommerce.ycs.io
+  ytr:
+    fqdn: ro1-ytr-s.ycommerce.ycs.io
+  repo:
+    fqdn: ro1-repo-s.ycommerce.ycs.io
+  ctrl:
+    fqdn: ro1-ctrl-s.ycommerce.ycs.io
+
+ytr_nfs_server: ro1-cmz-ytrsst-001.ycommerce.ycs.io
+rdk_nfs_server: ro1-cmz-rdksst-001.ycommerce.ycs.io
+
+cmdbadaptor_spring_datasource_url: jdbc:mysql://ro1-cmz-cmdbs-001.ycommerce.ycs.io:3306/portal_001?useUnicode=true&amp;characterEncoding=UTF-8
+middleware_portal_server_address: http://{{ansible_fqdn}}:8080
+middleware_rundeck_outbound_server_address: https://ro1-cmz-rdks-001.ycommerce.ycs.io:4443

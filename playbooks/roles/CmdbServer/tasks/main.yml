@@ -1,0 +1,40 @@
+---
+
+- name: Install Cmdb init code
+  template:
+    src: templates/cmdb_init.sql.j2
+    dest: /usr/local/sbin/cmdb_init.sql
+    owner: root
+    group: root
+    mode: 0700
+
+# this returns 0 if the mysql command does NOT fail, i.e. no root password is set
+- name: Check if we already set an admin password
+  command: "mysql -u root -e 'show databases'"
+  register: admin_pw_set
+  ignore_errors: true
+  changed_when: false
+  failed_when: false
+
+- name: Import cmdb_init.sql as root without password
+  shell: "mysql -u root < /usr/local/sbin/cmdb_init.sql"
+  when: admin_pw_set.rc == 0
+
+- block:  # Because of CSESRE-1024 Credentials in Jenkins output log
+  - name: Import cmdb_init.sql as root with password
+    shell: "mysql -u root -p{{vault_cmdb_admin_password}} < /usr/local/sbin/cmdb_init.sql"
+    no_log: true
+    failed_when: false
+    register: import_outcome
+
+  - debug:
+      msg: "Import cmdb_init.sql failed, exitcode: {{import_outcome.rc}}, stdout: '{{import_outcome.stdout}}', stderr: '{{import_outcome.stderr}}'"
+    failed_when: true
+    when: import_outcome.rc != 0
+  when: admin_pw_set.rc != 0
+
+- include: load_initial_cmdb_data.yml
+  when: load_initial_cmdb_data
+
+- include: backup.yml
+  tags: cmdb_backup

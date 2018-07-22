@@ -1,0 +1,13 @@
+---
+
+- include: selenium.yml
+  become: true
+  tags: selenium
+
+- include: firefox.yml
+  become: true
+  tags: [ selenium, firefox ]
+
+- include: xvfb.yml
+  become: true
+  tags: [ selenium, firefox, xvfb ]

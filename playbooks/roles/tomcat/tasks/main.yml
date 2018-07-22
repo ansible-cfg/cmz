@@ -1,0 +1,165 @@
+---
+
+# CSESRE-969 For Tomcat upgrade purpose, save any existing symlink to restore later
+- name: stat existing symlinks in webapps to restore later
+  block:
+  - find:
+      paths: /opt/tomcat/webapps/
+      file_type: link
+    register: webapp_symlinks
+
+  # we need a separate stat call because find does not gather file info on symlinks, namely the symlink target
+  - stat:
+      path: "{{item.path}}"
+      get_checksum: false
+      get_mime: false
+    with_items: "{{webapp_symlinks.files}}"
+    register: webapp_symlink_stats
+  tags: tomcat
+
+- name: Check if Tomcat is installed
+  command: java -cp /opt/tomcat/lib/catalina.jar org.apache.catalina.util.ServerInfo
+  register: install_tomcat
+  ignore_errors: true
+  failed_when: false
+  changed_when: false
+  tags: tomcat
+
+- name: Create tomcat group
+  group:
+    name: tomcat
+    state: present
+    system: true
+  tags: tomcat
+
+- name: Create tomcat user
+  user:
+    name: tomcat
+    shell: /bin/bash
+    groups: tomcat
+    append: true
+  tags: tomcat
+
+- block:
+  - include: tomcat_package.yml
+
+  # the Ansible unarchive module fails for extraction :-(
+  - name: Extract the Tomcat archive
+    command: tar xzf '/tmp/ansible_tempdir/tomcat/{{tomcat_installation_file}}' --exclude '*/webapps/docs' --exclude '*/webapps/examples' --exclude '*/webapps/ROOT'
+    args:
+      chdir: /opt
+
+  - name: Change ownership of tomcat resources
+    command: chown -R tomcat:tomcat '/opt/{{tomcat_fullname}}'
+
+  - name: Set a generic tomcat symlink pointing to the actual tomcat installation
+    file:
+      src: /opt/{{tomcat_fullname}}
+      name: /opt/tomcat
+      owner: tomcat
+      group: tomcat
+      state: link
+  when: (install_tomcat.rc != 0) or (install_tomcat.stdout.find(tomcat_version) == -1)
+  tags: tomcat
+
+# TODO: why use a custom log location, why not /var/log/tomcat?!
+- name: Create custom log dir
+  file:
+    dest: "{{tomcat_logdir}}"
+    state: directory
+    owner: "tomcat"
+    group: "tomcat"
+    mode: 0755
+  tags: tomcat
+
+- name: logrotation
+  template:
+    src: templates/logrotation.conf.j2
+    dest: /etc/logrotate.d/tomcat
+    backup: true
+    owner: root
+    group: root
+  tags: tomcat
+
+- name: Systemd directory for custom Tomcat service file
+  file:
+    dest: /etc/systemd/system/
+    mode: 0755
+    state: directory
+  tags: tomcat
+
+- name: Deploy Web.xml config
+  template:
+    src: templates/web.xml.j2
+    dest: /opt/tomcat/conf/web.xml
+    owner: tomcat
+    group: tomcat
+    mode: 0600
+  tags: tomcat
+
+- name: Deploy server.xml config
+  template:
+    src: templates/server.xml.j2
+    dest: /opt/tomcat/conf/server.xml
+    owner: tomcat
+    group: tomcat
+    mode: 0600
+  tags: tomcat
+
+- name: Systemd service file for Tomcat
+  template:
+    src: templates/tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    mode: 0644
+  notify:
+  - tomcat restart
+  - systemd reload
+  tags: tomcat
+
+- name: JMX password file
+  lineinfile:
+    path: /opt/tomcat/conf/jmxremote.password
+    regexp: "{{vault_jmx_user}} {{vault_jmx_password}}"
+    line: "{{vault_jmx_user}} {{vault_jmx_password}}"
+    state: present
+    create: true
+    owner: tomcat
+    group: tomcat
+    mode: 0600
+  tags: tomcat
+
+- name: JMX access file
+  lineinfile:
+    path: /opt/tomcat/conf/jmxremote.access
+    regexp: "{{vault_jmx_user}} readonly"
+    line: "{{vault_jmx_user}} readonly"
+    state: present
+    create: true
+    owner: tomcat
+    group: tomcat
+    mode: 0640
+  tags: tomcat
+
+# CSESRE-969 Restore webapp symlinks if they existed before
+- name: restore existing symlinks in webapps
+  file:
+    src: '{{item.stat.lnk_source}}'
+    dest: '{{item.stat.path}}'
+    owner: tomcat
+    group: tomcat
+    state: link
+    follow: false  # if true it will set owner and group to the symlink target instead of the symlink itself
+    force: true  # restore even the broken symlinks, if any
+  with_items: "{{webapp_symlink_stats.results}}"
+  tags: tomcat
+
+- name: Run all handlers now
+  meta: flush_handlers
+  tags: tomcat
+
+- name: Enable and start Tomcat
+  service:
+    name: tomcat
+    enabled: true
+    state: started
+  tags: tomcat

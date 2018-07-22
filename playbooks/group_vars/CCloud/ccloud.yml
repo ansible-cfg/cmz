@@ -1,0 +1,64 @@
+---
+
+# variables for Converged Cloud development landscape
+
+# Do not use these directly, use dc.id, dc.name etc.
+_dc_id: "ccloud"
+_dc_name: "Converged cloud"
+
+ansible_ssh_user: "centos"
+
+service_user: "centos"
+service_user_group: "centos"
+
+internet_proxy_host: ""
+internet_proxy_port: ""
+internet_proxy: ""
+
+mailserver: "localhost"
+
+validate_certs: false
+
+loadbalancer: ""
+
+loadbalanced_url:
+  rdk:
+    fqdn: localhost
+  por:
+    fqdn: localhost
+  ytr:
+    fqdn: localhost
+  repo:
+    fqdn: "{{repo_vm}}"
+  ctrl:
+    fqdn: localhost
+
+rev_proxy_config_backend:
+  rdk:
+    backend_inventory_group: Rundeck
+    backend_protocol: "{{protocol_rdk}}"
+    backend_port: "{{port_rdk}}"
+    sticky_session: true
+  por:
+    backend_inventory_group: Portal
+    backend_protocol: "{{protocol_por}}"
+    backend_port: "{{port_por}}"
+    sticky_session: true
+  repo:
+    backend_inventory_group: Repo
+    backend_protocol: "{{protocol_repo}}"
+    backend_port: "{{port_repo}}"
+    sticky_session: false
+
+ytestrunner2_java_mem: >-
+    -Xms512m
+    -Xmx512m
+
+tomcat_java_opts: >-
+    -Xms555m
+    -Xmx555m
+    -XX:+UseConcMarkSweepGC
+    -XX:+UseParNewGC
+    -XX:+DisableExplicitGC
+    -Djava.security.egd=file:///dev/urandom
+    -Dspring.profiles.active=developmentldif

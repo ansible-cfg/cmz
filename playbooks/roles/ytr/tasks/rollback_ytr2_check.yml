@@ -1,0 +1,11 @@
+---
+
+- name: check if there is a previous deployment available for rollback
+  stat:
+    path: "{{ytestrunner2_previous_deploy}}"
+  register: ytestrunner2_backup_path
+
+- name: fail if no previous deployment is available
+  fail:
+    msg: "{{ytestrunner2_previous_deploy}} doesn't exists, rollback not possible"
+  when: not ytestrunner2_backup_path.stat.exists

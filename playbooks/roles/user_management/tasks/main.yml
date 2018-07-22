@@ -1,0 +1,62 @@
+---
+
+#
+# The following service users accounts are only created in our test envirnoments, e.g. Ansible, CCloud machines.
+# THEY MUST NOT BE CREATED IN DATACENTERS MAINTAINED BY THE INFRA TEAM.
+#
+
+- block:
+  - name: Create service user accounts in SRE datacenters
+    include: create_user.yml
+    with_dict: "{{service_users}}"
+    loop_control:
+      label: "{{item.key}}"
+
+  # we will decide in install_ssh_keys.yml whether to install the priv or pub key
+  - name: Install service user ssh keys in SRE datacenters
+    include: install_ssh_keys.yml
+    with_dict: "{{service_users}}"
+    loop_control:
+      label: "{{item.key}}"
+
+  when:
+    - "('Vagrant' in group_names) or ('CCloud' in group_names)"
+    - "((item.value.privkey_ansible_grps | intersect(group_names) | length) > 0) or
+       ((item.value.pubkey_ansible_grps | intersect(group_names) | length) > 0)"
+  tags: users
+
+
+
+#
+# The following additional ssh keys are installed in all datacenters:
+#
+
+- name: Additional keys for the Ansible service user
+  include: install_ssh_keys.yml
+  with_dict: "{{svc_ansible_additional_keys}}"
+  loop_control:
+    label: "{{item.key}}"
+  when:
+      ((item.value.privkey_ansible_grps | intersect(group_names) | length) > 0) or
+      ((item.value.pubkey_ansible_grps | intersect(group_names) | length) > 0)
+  tags: users
+
+- name: Ssh config for git repo access
+  blockinfile:
+    path: /home/{{service_user}}/.ssh/config
+    block: |
+      host {{git_repo_host}}
+          HostName      {{git_repo_host}}
+          IdentityFile  "{{item.value.privkey_path}}"
+          User          git
+    create: true
+    owner: "{{service_user}}"
+    group: "{{service_user_group}}"
+    mode: 0600
+  with_dict: "{{svc_ansible_additional_keys}}"
+  loop_control:
+    label: "{{item.key}}"
+  when:
+    - (item.value.privkey_ansible_grps | intersect(group_names) | length) > 0
+    - item.key == "sshkey_scm"
+  tags: users

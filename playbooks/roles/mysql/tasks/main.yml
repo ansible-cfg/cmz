@@ -1,0 +1,42 @@
+---
+
+- include: mysql_client.yml
+  static: true
+
+- include: mysql_server.yml
+  static: true
+  when: install_server
+
+- name: Create MySQL config dir
+  file:
+    dest: /etc/my.cnf.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create MySQL Log dir
+  file:
+    dest: /var/log/mysql
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: 0750
+
+- name: Install MySQL config file
+  template:
+    src: my.cnf.j2
+    dest: /etc/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+  - restart mysql
+
+- name: Mysql logrotate config
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/mysql
+    owner: root
+    group: root
+    mode: 0644

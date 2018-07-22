@@ -1,0 +1,52 @@
+---
+
+# Do mot install with:
+#   yum install MySQL-server-5.5.57-1.el7.x86_64.rpm
+# This removes mariadb-libs and its dependent packages, e.g.
+# nagios-plugins-mailq, nagios-plugins-mysql, net-snmp, postfix, ...
+#
+# Instead, install with:
+#   yum install MySQL-*.rpm
+# This installs a replacement for mariadb-libs-* which makes its dependencies happy.
+#
+# Note that after replacing the mariadb-libs-* /etc/my.cnf still contains
+#     [mysqld_safe]
+#     log-error=/var/log/mariadb/mariadb.log
+#     pid-file=/var/run/mariadb/mariadb.pid
+# We install our own my.cnf to fix this
+
+- name: Check if we need to get the MySQL packages from the repo server
+  command: "ls /tmp/ansible_tempdir/mysql/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar"
+  register: need_mysql_packages
+  ignore_errors: true
+  failed_when: false
+  changed_when: false
+
+- block:
+  - name: Create Ansible temp dir for MySQL package download
+    file:
+      dest: "/tmp/ansible_tempdir/mysql/{{item}}"
+      state: directory
+      owner: "{{service_user}}"
+      group: "{{service_user_group}}"
+      mode: 0755
+    with_items:
+    - client_rpms
+    - server_rpms
+
+  # Source of the MySQL package on the repo server is:
+  # https://dev.mysql.com/get/Downloads/MySQL-5.5/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar
+  - name: Get the MySQL package bundle from the repo server
+    get_url:
+      url: "http://{{repo_server}}/mysql/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar"
+      dest: /tmp/ansible_tempdir/mysql/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar
+      use_proxy: false
+      validate_certs: "{{validate_certs}}"  # For when HTTP redirects to HTTPS
+      
+  # the Ansible unarchive module fails with:
+  # "Unable to find '/tmp/ansible_tempdir/mysql/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar' in expected paths."
+  - name: Extract the MySQL package bundle
+    command: tar xf /tmp/ansible_tempdir/mysql/MySQL-5.5.57-1.el7.x86_64.rpm-bundle.tar
+    args:
+      chdir: /tmp/ansible_tempdir/mysql
+  when: need_mysql_packages.rc != 0

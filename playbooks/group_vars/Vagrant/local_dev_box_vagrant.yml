@@ -1,0 +1,50 @@
+---
+
+# variables for the local development box' VMs:
+
+# Do not use these directly, use dc.id, dc.name etc.
+_dc_id: "vagrant"
+_dc_name: "Vagrant"
+
+service_user: "vagrant"
+service_user_group: "vagrant"
+
+internet_proxy_host: ""
+internet_proxy_port: ""
+internet_proxy: ""
+
+mailserver: "localhost"
+
+validate_certs: false
+
+loadbalancer: ""
+
+loadbalanced_url:
+  rdk:
+    fqdn: vagrant-cmz-rdkp-001.local
+  por:
+    fqdn: vagrant-cmz-porp-001.local
+  ytr:
+    fqdn: vagrant-cmz-ytrp-001.local
+  repo:
+    fqdn: vagrant-cmz-repop-001.local
+  ctrl:
+    fqdn: vagrant-cmz-ctrlp-001.local
+
+# adjust Tomcat memory consumption for the vagrant VMs:
+tomcat_java_opts: >-
+    -Xms555m
+    -Xmx555m
+    -XX:+UseConcMarkSweepGC
+    -XX:+UseParNewGC
+    -XX:+DisableExplicitGC
+    -Djava.security.egd=file:///dev/urandom
+    -Dspring.profiles.active=developmentldif
+
+ytestrunner2_java_mem: >-
+    -Xms512m
+    -Xmx512m
+
+cmdbadaptor_spring_datasource_url: jdbc:mysql://vagrant-cmz-cmdbp-001.local:3306/portal_001?useUnicode=true&amp;characterEncoding=UTF-8
+middleware_portal_server_address: http://{{ansible_fqdn}}:8080
+middleware_rundeck_outbound_server_address: https://vagrant-cmz-rdkp-001.local:4443

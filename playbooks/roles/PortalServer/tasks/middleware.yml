@@ -1,0 +1,65 @@
+---
+
+- name: Install Python virtualenv
+  pip:
+    name: virtualenv
+    umask: "0022"
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Git checkout the middleware Ansible code
+  git:
+    repo: "ssh://git@{{git_repo_ssh}}/hcs-pdo-cnv/ansiblemiddleware.git"
+    version: master
+    force: true
+    dest: "{{middleware_dir}}"
+    accept_hostkey: true
+    key_file: "/home/{{service_user}}/.ssh/id_rsa_sshkey_scm"
+  become: false
+
+- name: Let Tomcat own the middleware code
+  file:
+    dest: "{{middleware_dir}}"
+    state: directory
+    owner: tomcat
+    group: "{{service_user_group}}"
+    mode: "0775"
+
+- name: Check if Python virtual environment venv already exists
+  command: "ls {{middleware_dir}}/venv"
+  register: venv_exists
+  failed_when: false
+  changed_when: false
+
+- name: Create the Python virtual environment venv
+  command: virtualenv venv
+  args:
+    chdir: "{{middleware_dir}}"
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+  when:
+    venv_exists.rc != 0
+
+- name: Activate the Python virtual environment venv
+  command: source {{middleware_dir}}/venv/bin/activate
+  args:
+    chdir: "{{middleware_dir}}"
+  when:
+    venv_exists.rc != 0
+  notify: deactivate python venv
+
+- name: Install required Python packages into venv using pip
+  pip:
+    requirements: "{{middleware_dir}}/requirements.txt"
+    virtualenv: "{{middleware_dir}}/venv"
+    umask: "0022"
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Ansible config file
+  template:
+    src: templates/ansible.cfg.j2
+    dest: "{{ansible_install_dir}}/ansible.cfg"

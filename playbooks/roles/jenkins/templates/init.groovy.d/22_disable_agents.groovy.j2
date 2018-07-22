@@ -1,0 +1,16 @@
+import jenkins.model.Jenkins
+import java.util.logging.Logger
+
+def logger = Logger.getLogger("")
+logger.info("Start of " + this.class.getName())
+
+try {
+    Set<String> agentProtocolsList = ['JNLP4-connect', 'Ping']
+    Jenkins.instance.setAgentProtocols(agentProtocolsList)
+    Jenkins.instance.save()
+} catch(Exception ex) {
+    logger.info("Catching the exception: " + ex)
+}
+
+logger.info("End of " + this.class.getName())
+

@@ -1,0 +1,53 @@
+---
+
+- name: Check if yTR is running
+  command: systemctl status ytestrunner2
+  ignore_errors: true
+  changed_when: false
+  failed_when: false
+  register: ytestrunner2_up
+
+- block:
+  - name: Turn on maintenance status
+    uri:
+      url: "{{protocol_ytr}}://localhost:{{port_ytr}}/requestmaintenance"
+      method: GET
+      validate_certs: false
+      follow_redirects: all
+      user: "{{ytr2config_basicauth_properties_user}}"
+      password: "{{ytr2config_basicauth_properties_pass}}"
+      return_content: true
+      status_code: 200
+    register: ytr_maintenancestatus
+
+  - name: Display maintenance status after requesting maintenance
+    debug:
+      var: ytr_maintenancestatus.content
+
+  - name: Wait max. 2 hours to reach status MAINTAINABLE
+    uri:
+      url: "{{protocol_ytr}}://localhost:{{port_ytr}}/getmaintenancestatus"
+      method: GET
+      validate_certs: false
+      follow_redirects: all
+      user: "{{ytr2config_basicauth_properties_user}}"
+      password: "{{ytr2config_basicauth_properties_pass}}"
+      return_content: true
+      status_code: 200
+    async: 7200
+    poll: 5
+    register: ytr_maintenancestatus
+
+  - debug:
+      var: ytr_maintenancestatus
+
+  - name: Fail if we cannot get into maintenance mode
+    fail:
+      msg: "Could not enter mainenance mode for 2h ... giving up"
+    when: ytr_maintenancestatus.content != 'MAINTAINABLE'
+
+  - name: Stop yTR2
+    service:
+      name: ytestrunner2
+      state: stopped
+  when: ytestrunner2_up.rc == 0

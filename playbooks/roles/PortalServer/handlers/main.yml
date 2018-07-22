@@ -1,0 +1,16 @@
+---
+
+- name: deactivate python venv
+  command: deactivate
+  args:
+    chdir: "{{git_clone_dir}}/ansiblemiddleware"
+  when:
+    venv_exists.rc != 0
+
+- name: systemd reload
+  command: systemctl daemon-reload
+
+- name: restart tomcat
+  service:
+    name: tomcat
+    state: restarted

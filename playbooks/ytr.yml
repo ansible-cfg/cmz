@@ -1,0 +1,17 @@
+---
+
+- hosts: yTestRunner
+
+  become: true
+
+  # needed to remove temp ansible template dirs during deployment
+  force_handlers: true
+
+  roles:
+    - os_packages
+    - user_management
+    - selenium
+    - {
+        role: ytr,
+        tags: ytr_server
+      }

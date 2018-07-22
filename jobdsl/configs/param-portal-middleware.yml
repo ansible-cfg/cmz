@@ -1,0 +1,5 @@
+---
+
+project: Portal-Middleware-Deploy
+branch: master
+playbook: playbooks/DeployMiddleware.yml

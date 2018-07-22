@@ -1,0 +1,20 @@
+---
+
+#
+# Automationportal vars
+#
+portal_datacenter_key: "3"
+# Testing spring_mail_host email. execute a yTR testsuite in portal and receive an email with test results.
+spring_mail_host: "mail-sy2.infra.ycs.io"
+portal_security_ldap_endPoint: "ldap://sy2-inf-ads-001.ycs.io:389"
+
+#
+# Middleware vars
+#
+middleware_rundeck_outbound_datacenter_key: "3"
+middleware_ssh_user: "svc_sy2portal2ssh"
+middleware_ansible_ssh_user: "svc_sy2portal2ssh"
+
+defined_in_vault.yml:
+  - portal_security_ldap_managerDn
+  - portal_security_ldap_managerPassword

@@ -1,0 +1,37 @@
+---
+
+# We have to use this for dictionaries, see https://github.com/ansible/ansible/issues/8603
+dc:
+  id: "{{_dc_id.lower()}}"  # gives ro1, sy2 etc.
+  Id: "{{_dc_id.title()}}"  # gives Ro1, Sy2 etc.
+  ID: "{{_dc_id.upper()}}"  # gives RO1, SY2 etc.
+  name: "{{_dc_name}}"      # gives Rot, Sydney etc.
+
+# variables for all envs of all datacenters
+
+git_repo_host: "enterprise-stash.hybris.com"
+git_repo_ssh: "enterprise-stash.hybris.com:7999"
+
+repo_server: "{{loadbalanced_url.repo.fqdn}}"
+
+validate_certs: true  # This is overwritten on certain datacenters such as Vagrant, CCloud, and DDV
+
+vra_api_fqdn: "{{dc.id}}-vra.ycs.io"
+
+# TODO: this needs to go into the default vars of the respective playbooks
+port_ytr: 8443
+protocol_ytr: https
+port_rdk: 4443
+protocol_rdk: http
+port_por: 8080
+protocol_por: http
+port_repo: 80
+protocol_repo: http
+port_ctrl: 443
+protocol_ctrl: https
+
+# Jenkins role-based permissions per folder
+jenkins_project_roles:
+  qa:
+    acl_name: "ACL-{{dc.ID}}-CMZJENKINS-QA"
+    pattern: "^QA.*"

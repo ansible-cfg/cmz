@@ -1,0 +1,109 @@
+---
+
+# This block runs on the local/control machine
+- block:
+  - name: Remove the local tempdir for storing properties templates
+    file:
+      dest: /tmp/ytr2
+      state: absent
+
+  - name: Create the local tempdir for storing properties templates
+    file:
+      dest: /tmp/ytr2
+      state: directory
+      mode: "0755"
+
+  - name: Create the local tempdir for storing properties templates
+    file:
+      dest: /tmp/ytr2/plugins
+      state: directory
+      mode: "0755"
+
+  - name: Download the yTestRunner2 core jar file locally
+    get_url:
+      url: "{{ytestrunner2_core_url}}"
+      dest: "/tmp/ytr2/ytestrunner2.jar"
+      url_username: "{{vault_artifactory_user}}"
+      url_password: "{{vault_artifactory_password}}"
+    environment:
+      http_proxy: "{{internet_proxy}}"
+      https_proxy: "{{internet_proxy}}"
+      no_log: true
+
+  - name: Download the yTestRunner2 main plugin jars locally
+    get_url:
+      url: "{{item}}"
+      dest: "/tmp/ytr2/plugins/{{item|basename}}"
+      url_username: "{{vault_artifactory_user}}"
+      url_password: "{{vault_artifactory_password}}"
+    environment:
+      http_proxy: "{{internet_proxy}}"
+      https_proxy: "{{internet_proxy}}"
+      no_log: true
+    with_items: "{{ytestrunner2_plugin_urls}}"
+
+  - name: Download the yTestRunner2 customer specific plugin jars locally
+    get_url:
+      url: "{{item}}"
+      dest: "/tmp/ytr2/plugins/{{item|basename}}"
+      url_username: "{{vault_artifactory_user}}"
+      url_password: "{{vault_artifactory_password}}"
+    environment:
+      http_proxy: "{{internet_proxy}}"
+      https_proxy: "{{internet_proxy}}"
+      no_log: true
+    with_items: "{{ytestrunner2_customer_plugin_urls}}"
+    when: ytestrunner2_customer_plugin_urls|length>0
+
+  # Unarchive module doesn't support partial extraction
+  - name: Extract property templates from the yTR core jar locally
+    command: unzip -o /tmp/ytr2/ytestrunner2.jar 'propertytemplates/*' -d /tmp/ytr2
+  delegate_to: 127.0.0.1
+  run_once: true
+  become: false
+# End of block
+
+- name: Copy the core yTestRunner2 file
+  copy:
+    src: "/tmp/ytr2/ytestrunner2.jar"
+    dest: "{{ytestrunner2_basedir}}/ytestrunner2.jar"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+
+- name: Copy the yTestRunner2 plugin files
+  copy:
+    src: "{{item}}"
+    dest: "{{ytestrunner2_plugins_dir}}/"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+  with_fileglob:
+    - /tmp/ytr2/plugins/*.jar
+
+- name: Install the property files to the remote
+  template:
+    src: "{{item}}"
+    dest: "{{ytestrunner2_config_dir}}"
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    mode: 0644
+  with_fileglob:
+    - "/tmp/ytr2/propertytemplates/*.properties"
+
+- name: Remove the temporary directory used on local
+  file:
+    dest: /tmp/ytr2
+    state: absent
+  delegate_to: 127.0.0.1
+  run_once: true
+  become: false
+
+# ytestrunner2 uses the svc_*ytr service user to SSH & do stuff, it needs it's private key.
+# If this task fails, then the /home/svc_*ytr user home doesn't exists, or the key is missing
+- name: Copy the "{{ytr2config_keyfiles_properties_serviceuser_name}}" to /opt/ytestrunner2/ytr2config/keyfiles
+  copy:
+    src: "/home/{{ytr2config_keyfiles_properties_serviceuser_name}}/.ssh/id_rsa"
+    dest: /opt/ytestrunner2/ytr2config/keyfiles/id_rsa
+    remote_src: true
+    owner: "{{ytestrunner2_user}}"
+    group: "{{ytestrunner2_group}}"
+    mode: 0600

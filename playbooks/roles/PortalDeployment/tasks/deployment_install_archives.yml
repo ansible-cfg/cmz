@@ -1,0 +1,40 @@
+---
+
+#- debug:
+#    var: item
+
+- name: Create {{deploy_vars.dir}}
+  file:
+    dest: "{{deploy_vars.dir}}"
+    state: directory
+    mode: 0755
+
+- name: Get {{deploy_vars.tempdir}}/{{deploy_vars.jarch}} from the Ansible control machine
+  copy:
+    src: "{{deploy_vars.tempdir}}/{{deploy_vars.jarch}}"
+    dest: "{{deploy_vars.dir}}/{{deploy_vars.jarch}}"
+
+- name: Extract the archive {{deploy_vars.jarch}} into {{deploy_vars.dir}}/{{deploy_vars.jarch}}
+  command: unzip -o -d {{deploy_vars.dir}} {{deploy_vars.dir}}/{{deploy_vars.jarch}}
+
+- name: Remove {{deploy_vars.jarch}} from {{deploy_vars.dir}}
+  file:
+    dest: "{{deploy_vars.dir}}/{{deploy_vars.jarch}}"
+    state: absent
+
+- name: Install {{deploy_vars.dir}}/WEB-INF/classes/application.properties
+  template:
+    src: "{{deploy_vars.tempdir}}/application.properties"
+    dest: "{{deploy_vars.dir}}/WEB-INF/classes/application.properties"
+    owner: tomcat
+    group: tomcat
+    mode: 0640
+
+- name: SymLink {{deploy_vars.dir}} into Tomcat's webapps dir /opt/tomcat/webapps/{{deploy_vars.symlink}}
+  file:
+    src: "{{deploy_vars.dir}}"
+    name: "/opt/tomcat/webapps/{{deploy_vars.symlink}}"
+    owner: tomcat
+    group: tomcat
+    state: link
+    follow: false  # if true it will set owner and group to the symlink target instead of the symlink itself

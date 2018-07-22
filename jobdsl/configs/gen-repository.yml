@@ -1,0 +1,5 @@
+---
+
+project: Repository-Deploy
+branch: master
+playbook: playbooks/repo.yml

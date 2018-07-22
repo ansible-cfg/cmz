@@ -1,0 +1,43 @@
+---
+
+- name: Check if pip is installed via OS package manager
+  command: rpm -q python2-pip
+  register: pip_via_packagemanager
+  ignore_errors: true
+  failed_when: false
+  changed_when: false
+
+- block:
+  - name: Uninstall pip from OS if we go for a pypa.io installation
+    package:
+        name: python2-pip
+        state: absent
+
+  - name: Remove the pip conf directory
+    file:
+      dest: "/etc/pip.conf"
+      state: absent
+
+  when: pip_via_packagemanager.rc == 0
+
+- name: Get the python pip installer
+  get_url:
+    url: "https://bootstrap.pypa.io/get-pip.py"
+    dest: /tmp/get_pip.py
+    validate_certs: true  # Always validate the cert of public sites
+    timeout: 10
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Build and install Python pip from pypa.io
+  command: python /tmp/get_pip.py --force-reinstall
+  environment:
+    http_proxy: "{{internet_proxy}}"
+    https_proxy: "{{internet_proxy}}"
+
+- name: Install pip build dependencies
+  package:
+    name: "{{item}}"
+    state: latest
+  with_items: "{{pip_dependencies}}"

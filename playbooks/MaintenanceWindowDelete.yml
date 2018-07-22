@@ -1,0 +1,15 @@
+---
+
+- name: delete maintenance window
+  hosts: Control
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: delete a maintenance window from Dynatrace
+    dynatrace_maintenance_window:
+      api_url: "{{dynatrace_api_url}}"
+      api_token: "{{dynatrace_api_maintenance_token}}"
+      command: delete
+      id: "{{maintenance_id}}"
+    environment:
+      https_proxy: "{{ internet_proxy }}"
