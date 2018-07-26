@@ -6,13 +6,13 @@
 
   roles:
     - os_packages
-    - user_management
-    - ansible
-    - python2
-    - selenium
-    - {
-        role: soapui,
-        tags: soapui
-      }
-    - apache
-    - jenkins
+    #- user_management
+    #- ansible
+    #- python2
+    #- selenium
+    #- {
+    #    role: soapui,
+    #    tags: soapui
+    #  }
+    #- apache
+    #- jenkins
