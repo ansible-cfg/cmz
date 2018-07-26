@@ -18,7 +18,7 @@ import socket
 
 
 # List of datacenters, vagrant is a local Vagrant based test datacenter
-datacenters = ['vagrant', 'ro1', 'sy2', 'mo2', 'ddv', 'ns1', 'dqa', 'stg']
+datacenters = ['vagrant', 'ro1', 'sy2', 'mo2', 'ddv', 'ns1', 'dqa', 'stg', 'lcl']
 
 # Mapping between environment names and abbreviation
 environments = {
@@ -26,6 +26,8 @@ environments = {
     's': 'stg',
     'p': 'prd',
     'q': 'qa',
+    'l': 'lcl',
+
 }
 
 # List of all server types and their corresponding Ansible group
@@ -252,7 +254,18 @@ def getHosts():
             "mo2-cmz-rdkdbp-001.ycommerce.ycs.io",
             "mo2-cmz-cmdbp-001.ycommerce.ycs.io",
         ]
-
+    if datacenter == "lcl":
+        return [
+            "lcl-cmz-rdkp-001.ycommerce.ycs.io",
+            "lcl-cmz-rdkp-002.ycommerce.ycs.io",
+            "lcl-cmz-porp-001.ycommerce.ycs.io",
+            "lcl-cmz-ytrp-001.ycommerce.ycs.io",
+            "lcl-cmz-ctrlp-001.ycommerce.ycs.io",
+            "lcl-cmz-webp-001.ycommerce.ycs.io",
+            "lcl-cmz-repop-001.ycommerce.ycs.io",
+            "lcl-cmz-rdkdbp-001.ycommerce.ycs.io",
+            "lcl-cmz-cmdbp-001.ycommerce.ycs.io",
+        ]
     if datacenter == "vagrant":
         return [
             "vagrant-cmz-ctrlp-001.local",
