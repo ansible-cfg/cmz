@@ -6,7 +6,7 @@
 
   roles:
     - os_packages
-    #- user_management
+    - user_management
     #- ansible
     #- python2
     #- selenium
