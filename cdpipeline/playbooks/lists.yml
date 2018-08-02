@@ -1,5 +1,5 @@
 ---
 - hosts: all
-
+tasks:
 - name: lists file and folder
-  command: ls
+command: ls
