@@ -1,5 +1,4 @@
 ---
 - hosts: all
-tasks:
-- name: "list files in folder"
-command: ls
+- name: lists directory
+  command: ls
